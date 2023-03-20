@@ -2,23 +2,54 @@
    Alex's motor drivers.
 */
 
-// Set up Alex's motors. Right now this is empty, but
-// later you will replace it with code to set up the PWMs
-// to drive the motors.
+//volatile char leftMotorPWM = 0;
+//volatile char rightMotorPWM = 0;
+//
+//ISR(TIMER0_COMPA_vect) {
+//  leftMotorPWM = !leftMotorPWM; // Toggle PWM signal
+//}
+//
+//ISR(TIMER0_COMPB_vect) {
+//  rightMotorPWM = !rightMotorPWM; // Toggle PWM signal
+//}
+
+/* Motor set up:
+  A1IN - Pin 5, PD5, OC0B
+  A2IN - Pin 6, PD6, OC0A
+  B1IN - Pin 10, PB2, OC1B
+  B2In - pIN 11, PB3, OC2A
+*/  
 void setupMotors() {
-  /* Our motor set up is:
-        A1IN - Pin 5, PD5, OC0B
-        A2IN - Pin 6, PD6, OC0A
-        B1IN - Pin 10, PB2, OC1B
-        B2In - pIN 11, PB3, OC2A
-  */
+  TCNT0 = 0;
+  TCNT2 = 0
+  
+  OCR0A = 0; OCR0B = 0;
+  OCR2A = 0; OCR2B = 0;
+  
+//  TIMSK0 = B00000110; // Enable interrupt for OCR0A & OCR0B (bit 2 & 1)
+  TCCR0A = B00000001; // Set phase correct PWM mode, disable waveform output
+  TCCR2A = B00000001; // Set phase correct PWM mode, disable waveform output
 }
 
-// Start the PWM for Alex's motors.
-// We will implement this later. For now it is
-// blank.
-void startMotors() {
+void startMotors() { // Start PWM for motors
+  TCCR0B = B00000011; // Set 64 prescaler for 490Hz PWM freq (16Mhz / 64 * 510)
+  TCCR2B = B00000011; // Set 64 prescaler for 490Hz PWM freq (16Mhz / 64 * 510)
+}
 
+void rightMotorForward() {
+  TCC2A = B10000001; // Enable waveform on OC2A pin
+}
+
+void rightMotorReverse() {
+  TCC2A = B00100001; // Enable waveform on OC2B pin
+}
+
+void leftMotorForward() {
+  TCC0A = B10000001; // Enable waveform on OC0A pin
+}
+
+void leftMotorReverse() {
+  TCC0A = B00100001; // Enable waveform on OC0B pin
 }
 
 // Convert percentages to PWM values
@@ -29,6 +60,8 @@ int pwmVal(float percent) {
   if (percent > 100.0)
     percent = 100.0;
 
+  OCR0A = (int) ((percent / 100.0) * 255.0);
+  OCR0B = (int) ((percent / 100.0) * 255.0);
   return (int) ((percent / 100.0) * 255.0);
 }
 
@@ -46,11 +79,13 @@ void forward() { // float dist, float speed
   // LF = Left forward pin, LR = Left reverse pin
   // RF = Right forward pin, RR = Right reverse pin
   // This will be replaced later with bare-metal code.
-
-  analogWrite(LF, val);
-  analogWrite(RF, val);
-  analogWrite(LR, 0);
-  analogWrite(RR, 0);
+  
+  leftMotorForward();
+  rightMotorForward();
+//  analogWrite(LF, val);
+//  analogWrite(RF, val);
+//  analogWrite(LR, 0);
+//  analogWrite(RR, 0);
 }
 
 // Reverse Alex "dist" cm at speed "speed".
@@ -67,10 +102,13 @@ void reverse() { // float dist, float speed
   // LF = Left forward pin, LR = Left reverse pin
   // RF = Right forward pin, RR = Right reverse pin
   // This will be replaced later with bare-metal code.
-  analogWrite(LR, val);
-  analogWrite(RR, val);
-  analogWrite(LF, 0);
-  analogWrite(RF, 0);
+
+  leftMotorReverse();
+  rightMotorReverse();
+//  analogWrite(LR, val);
+//  analogWrite(RR, val);
+//  analogWrite(LF, 0);
+//  analogWrite(RF, 0);
 }
 
 // Turn Alex left "ang" degrees at speed "speed".
@@ -80,7 +118,7 @@ void reverse() { // float dist, float speed
 // turn left indefinitely.
 void left() { // float ang, float speed
   dir = LEFT;
-  int val = pwmVal(speed);
+  int val = pwmVal(speed/2); // Use half of normal speed for turn
 
 //  unsigned long deltaTicks = (ang / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
 //  targetTurnTicks = leftReverseTicks + deltaTicks;
@@ -89,10 +127,12 @@ void left() { // float ang, float speed
   // We will also replace this code with bare-metal later.
   // To turn left we reverse the left wheel and move
   // the right wheel forward.
-  analogWrite(LR, val);
-  analogWrite(RF, val);
-  analogWrite(LF, 0);
-  analogWrite(RR, 0);
+  leftMotorReverse();
+  rightMotorForward();
+//  analogWrite(LR, val);
+//  analogWrite(RF, val);
+//  analogWrite(LF, 0);
+//  analogWrite(RR, 0);
 }
 
 // Turn Alex right "ang" degrees at speed "speed".
@@ -102,7 +142,7 @@ void left() { // float ang, float speed
 // turn right indefinitely.
 void right() { // float ang, float speed
   dir = RIGHT;
-  int val = pwmVal(speed);
+  int val = pwmVal(speed/2); // Use half of normal speed for turn
 
 //  unsigned long deltaTicks = (ang / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
 //  targetTurnTicks = rightReverseTicks + deltaTicks;
@@ -111,10 +151,12 @@ void right() { // float ang, float speed
   // We will also replace this code with bare-metal later.
   // To turn right we reverse the right wheel and move
   // the left wheel forward.
-  analogWrite(RR, val);
-  analogWrite(LF, val);
-  analogWrite(LR, 0);
-  analogWrite(RF, 0);
+  leftMotorForward();
+  rightMotorReverse();
+//  analogWrite(RR, val);
+//  analogWrite(LF, val);
+//  analogWrite(LR, 0);
+//  analogWrite(RF, 0);
 }
 
 // Stop Alex. To replace with bare-metal code later.
