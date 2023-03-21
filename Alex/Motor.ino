@@ -1,18 +1,3 @@
-/*
-   Alex's motor drivers.
-*/
-
-//volatile char leftMotorPWM = 0;
-//volatile char rightMotorPWM = 0;
-//
-//ISR(TIMER0_COMPA_vect) {
-//  leftMotorPWM = !leftMotorPWM; // Toggle PWM signal
-//}
-//
-//ISR(TIMER0_COMPB_vect) {
-//  rightMotorPWM = !rightMotorPWM; // Toggle PWM signal
-//}
-
 /* Motor set up:
   A1IN - Pin 5, PD5, OC0B
   A2IN - Pin 6, PD6, OC0A
@@ -20,36 +5,47 @@
   B2In - pIN 11, PB3, OC2A
 */  
 void setupMotors() {
-  TCNT0 = 0;
-  TCNT2 = 0
-  
+  TCNT0 = 0; TCNT1 = 0; TCNT2 = 0;
+
   OCR0A = 0; OCR0B = 0;
-  OCR2A = 0; OCR2B = 0;
+  OCR2A = 0; OCR1B = 0;
   
 //  TIMSK0 = B00000110; // Enable interrupt for OCR0A & OCR0B (bit 2 & 1)
-  TCCR0A = B00000001; // Set phase correct PWM mode, disable waveform output
-  TCCR2A = B00000001; // Set phase correct PWM mode, disable waveform output
+
+// Set phase correct PWM mode, disable waveform output
+  TCCR0A = B00000001; 
+  TCCR1A = B00000001; // 8-bit phase correct PWM 
+  TCCR2A = B00000001; 
+
+  DDRB |= (1 << PB2) | (1 << PB3); // Set pin 10 & 11 to OUTPUT
+  DDRD |= (1 << PD5) | (1 << PD6); // Set pin 5 & 6 to OUTPUT
 }
 
 void startMotors() { // Start PWM for motors
-  TCCR0B = B00000011; // Set 64 prescaler for 490Hz PWM freq (16Mhz / 64 * 510)
-  TCCR2B = B00000011; // Set 64 prescaler for 490Hz PWM freq (16Mhz / 64 * 510)
-}
-
-void rightMotorForward() {
-  TCC2A = B10000001; // Enable waveform on OC2A pin
+  // Set 64 prescaler for 490Hz PWM freq (16Mhz / 64 * 510)
+  TCCR0B = B00000011; 
+  TCCR1B = B00000011; 
+  TCCR2B = B00000011;
 }
 
 void rightMotorReverse() {
-  TCC2A = B00100001; // Enable waveform on OC2B pin
+  TCCR1A = B00100001; // Enable waveform on OC1B pin
+  TCCR2A = B00000001; // Disable waveform on OC2A pin
 }
 
-void leftMotorForward() {
-  TCC0A = B10000001; // Enable waveform on OC0A pin
+void rightMotorForward() {
+  TCCR1A = B00000001; // Disable waveform on OC1B pin
+  TCCR2A = B10000001; // Enable waveform on OC2A pin
 }
 
 void leftMotorReverse() {
-  TCC0A = B00100001; // Enable waveform on OC0B pin
+  // Enable OC0A pin, Disable OC0B pin
+  TCCR0A = B10000001; 
+}
+
+void leftMotorForward() {
+  // Disable OC0A pin, Enable OC0B pin
+  TCCR0A = B00100001; 
 }
 
 // Convert percentages to PWM values
@@ -60,8 +56,14 @@ int pwmVal(float percent) {
   if (percent > 100.0)
     percent = 100.0;
 
+  // Left motor duty cycle
   OCR0A = (int) ((percent / 100.0) * 255.0);
   OCR0B = (int) ((percent / 100.0) * 255.0);
+
+  // Right motor duty cycle
+  OCR1B = (int) ((percent / 100.0) * 255.0);
+  OCR2A = (int) ((percent / 100.0) * 255.0);
+  
   return (int) ((percent / 100.0) * 255.0);
 }
 
@@ -75,13 +77,10 @@ void forward() { // float dist, float speed
   int val = pwmVal(speed);
 
 //  targetDist = forwardDist + dist;
-
-  // LF = Left forward pin, LR = Left reverse pin
-  // RF = Right forward pin, RR = Right reverse pin
-  // This will be replaced later with bare-metal code.
   
   leftMotorForward();
   rightMotorForward();
+
 //  analogWrite(LF, val);
 //  analogWrite(RF, val);
 //  analogWrite(LR, 0);
@@ -99,12 +98,9 @@ void reverse() { // float dist, float speed
   
 //  targetDist = reverseDist + dist;
 
-  // LF = Left forward pin, LR = Left reverse pin
-  // RF = Right forward pin, RR = Right reverse pin
-  // This will be replaced later with bare-metal code.
-
   leftMotorReverse();
   rightMotorReverse();
+
 //  analogWrite(LR, val);
 //  analogWrite(RR, val);
 //  analogWrite(LF, 0);
@@ -123,12 +119,9 @@ void left() { // float ang, float speed
 //  unsigned long deltaTicks = (ang / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
 //  targetTurnTicks = leftReverseTicks + deltaTicks;
 
-  // For now we will ignore ang. We will fix this in Week 9.
-  // We will also replace this code with bare-metal later.
-  // To turn left we reverse the left wheel and move
-  // the right wheel forward.
   leftMotorReverse();
   rightMotorForward();
+
 //  analogWrite(LR, val);
 //  analogWrite(RF, val);
 //  analogWrite(LF, 0);
@@ -147,23 +140,19 @@ void right() { // float ang, float speed
 //  unsigned long deltaTicks = (ang / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
 //  targetTurnTicks = rightReverseTicks + deltaTicks;
 
-  // For now we will ignore ang. We will fix this in Week 9.
-  // We will also replace this code with bare-metal later.
-  // To turn right we reverse the right wheel and move
-  // the left wheel forward.
   leftMotorForward();
   rightMotorReverse();
+  
 //  analogWrite(RR, val);
 //  analogWrite(LF, val);
 //  analogWrite(LR, 0);
 //  analogWrite(RF, 0);
 }
 
-// Stop Alex. To replace with bare-metal code later.
 void stop() {
   dir = STOP;
-  analogWrite(LF, 0);
-  analogWrite(LR, 0);
-  analogWrite(RF, 0);
-  analogWrite(RR, 0);
+  
+  TCCR2A = B00000001; // Disable waveform on OC2A pin
+  TCCR1A = B00000001; // Disable waveform on OC1B pin
+  TCCR0A = B00000001; // Disable OC0A and OC0B pins
 }

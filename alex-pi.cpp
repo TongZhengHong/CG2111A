@@ -210,7 +210,7 @@ void sendCommand(char command) {
 
 		case RIGHT:
 			// getParams(&commandPacket);
-			printf("FORWARD\n");
+			printf("RIGHT\n");
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
 			break;

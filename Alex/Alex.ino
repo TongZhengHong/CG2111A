@@ -1,3 +1,6 @@
+//#include "Arduino.h" 
+//#include <avr/io.h> 
+
 #include <serialize.h>
 #include <stdarg.h>
 
@@ -25,10 +28,10 @@ volatile TMotorSpeed speed = SPEED_SLOW;
 
 // Motor control pins. You need to adjust these till
 // Alex moves in the correct direction
-#define LF                  6   // Left forward pin
-#define LR                  5   // Left reverse pin
-#define RF                  11  // Right forward pin
-#define RR                  3  // Right reverse pin
+#define LF                  5   // Left forward pin
+#define LR                  6   // Left reverse pin
+#define RF                  10  // Right forward pin
+#define RR                  11  // Right reverse pin
 
 /*
       Alex's State Variables
@@ -62,8 +65,10 @@ void setup() {
   setupEINT();
   setupSerial();
   startSerial();
+  
   setupMotors();
   startMotors();
+  
   enablePullups();
   initializeState();
   sei();
