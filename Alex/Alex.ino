@@ -4,6 +4,7 @@
 #include <serialize.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "packet.h"
 #include "constants.h"
@@ -132,7 +133,7 @@ void handleCommand(TPacket *command) {
       break;
 
     case COMMAND_MANUAL:
-      size_t dataLength = strlen(command->data);
+      sendOK();
       char *curWord = strtok(command->data,' ');
       size_t tokenCnt = 0;
       char *junkChar;
