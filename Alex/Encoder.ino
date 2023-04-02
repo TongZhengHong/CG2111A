@@ -13,18 +13,18 @@ void enablePullups() {
 
 // Functions to be called by INT0 and INT1 ISRs.
 void leftISR() {
-  if (dir == FORWARD) {
+  if (dir == 'w') {
     leftForwardTicks++;
     forwardDist = (unsigned long) ((float) leftForwardTicks / COUNTS_PER_REV * WHEEL_CIRC);
     
-  } else if (dir == REVERSE) {
+  } else if (dir == 's') {
     leftReverseTicks++;
     reverseDist = (unsigned long) ((float) leftReverseTicks / COUNTS_PER_REV * WHEEL_CIRC);
     
-  } else if (dir == LEFT) {
+  } else if (dir == 'a') {
     leftReverseTicks++;
     
-  } else if (dir == RIGHT) {
+  } else if (dir == 'd') {
     leftForwardTicks++;
   }
   //  Serial.print("LEFT: ");
@@ -33,16 +33,16 @@ void leftISR() {
 }
 
 void rightISR() {
-  if (dir == FORWARD) {
+  if (dir == 'w') {
     rightForwardTicks++;
     
-  } else if (dir == REVERSE) {
+  } else if (dir == 's') {
     rightReverseTicks++;
     
-  } else if (dir == LEFT) {
+  } else if (dir == 'a') {
     rightForwardTicks++;
     
-  } else if (dir == RIGHT) {
+  } else if (dir == 'd') {
     rightReverseTicks++;
   }
   //  Serial.print("RIGHT: ");

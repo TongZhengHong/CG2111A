@@ -73,7 +73,7 @@ int pwmVal(float percent) {
 // Specifying a distance of 0 means Alex will
 // continue moving forward indefinitely.
 void forward() { // float dist, float speed
-  dir = FORWARD;
+  //dir = FORWARD;
   int val = pwmVal(speed);
 
 //  targetDist = forwardDist + dist;
@@ -93,7 +93,7 @@ void forward() { // float dist, float speed
 // Specifying a distance of 0 means Alex will
 // continue reversing indefinitely.
 void reverse() { // float dist, float speed
-  dir = REVERSE;
+  //dir = REVERSE;
   int val = pwmVal(speed);
   
 //  targetDist = reverseDist + dist;
@@ -113,10 +113,9 @@ void reverse() { // float dist, float speed
 // Specifying an angle of 0 degrees will cause Alex to
 // turn left indefinitely.
 void left() { // float ang, float speed
-  dir = LEFT;
+  //dir = LEFT;
   int val = pwmVal(speed/2); // Use half of normal speed for turn
 
-//  unsigned long deltaTicks = (ang / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
 //  targetTurnTicks = leftReverseTicks + deltaTicks;
 
   leftMotorReverse();
@@ -134,7 +133,7 @@ void left() { // float ang, float speed
 // Specifying an angle of 0 degrees will cause Alex to
 // turn right indefinitely.
 void right() { // float ang, float speed
-  dir = RIGHT;
+  //dir = RIGHT;
   int val = pwmVal(speed/2); // Use half of normal speed for turn
 
 //  unsigned long deltaTicks = (ang / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
@@ -150,9 +149,52 @@ void right() { // float ang, float speed
 }
 
 void stop() {
-  dir = STOP;
+  //dir = STOP;
   
   TCCR2A = B00000001; // Disable waveform on OC2A pin
   TCCR1A = B00000001; // Disable waveform on OC1B pin
   TCCR0A = B00000001; // Disable OC0A and OC0B pins
+}
+
+void manualMove(float speed, float dist, char dir)
+{
+	int val = pwmVal(speed);
+	uint32_t temp;
+	switch (dir) {
+		case 'w':
+			forward();
+			temp = forwardDist;
+			clearOneCounter(5);
+			while (forwardDist < dist);
+			forwardDist += temp;
+			stop();
+			break;
+		case 'a':
+			left();
+			temp = leftReverseTicks;
+			clearOneCounter(3);
+			while (leftReverseTicks <  dist);
+			leftReverseTicks += temp;
+			stop();
+			break;
+		case 's':
+			reverse();
+			temp = reverseDist;
+			clearOneCounter(6);
+			while (reverseDist < dist);
+			forwardDist += temp;
+			stop();
+			break;
+		case 'd':
+			right();
+			temp = leftForwardTicks;
+			clearOneCounter(1);
+			while (leftForwardTicks < dist);
+			leftForwardTicks += temp;
+			stop();
+			break;
+
+		default:
+			break;
+	}
 }

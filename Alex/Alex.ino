@@ -3,12 +3,16 @@
 
 #include <serialize.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include "packet.h"
 #include "constants.h"
 
-volatile TDirection dir = STOP;
-volatile TMotorSpeed speed = SPEED_SLOW;
+//volatile TDirection dir = STOP;
+//volatile TMotorSpeed speed = SPEED_SLOW;
+volatile float speed = 60;
+volatile float dist = 3;
+volatile char *dir;
 
 /*
    Alex's configuration constants
@@ -125,6 +129,35 @@ void handleCommand(TPacket *command) {
     case COMMAND_CLEAR_STATS:
       sendOK();
       clearOneCounter(command->params[0]);
+      break;
+
+    case COMMAND_MANUAL:
+      size_t dataLength = strlen(command->data);
+      char *curWord = strtok(command->data,' ');
+      size_t tokenCnt = 0;
+      char *junkChar;
+      while (curWord != NULL)
+      {
+	      if (tokenCnt == 0)
+	      {
+		      speed = strtof(curWord, &junkChar);
+	      }
+	      else if (tokenCnt == 1)
+	      {
+		      dist = strtof(curWord, &junkChar);
+	      }
+	      else if (tokenCnt == 2)
+	      {
+		      *dir = curWord;
+	      }
+	      else
+	      {
+		      printf("Warning, extra tokens are discarded\n");
+	      }
+	      curWord = strtok(NULL, ' ');
+	      tokenCnt++;
+      }
+      manualMove(speed,dist,*dir);
       break;
 
     default:

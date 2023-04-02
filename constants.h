@@ -18,6 +18,7 @@ const char QUIT = 'q';
 const char SPEED_ONE = '1';
 const char SPEED_TWO = '2';
 const char SPEED_THREE = '3';
+const char MANUAL = 'm';
 
 // Packet types
 typedef enum
@@ -56,6 +57,7 @@ typedef enum
   COMMAND_SPEED_SLOW = 7,
   COMMAND_SPEED_MID = 8,
   COMMAND_SPEED_FAST = 9,
+  COMMAND_MANUAL = 10,
 } TCommandType;
 #endif
 

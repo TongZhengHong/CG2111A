@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
@@ -16,6 +18,8 @@
 #define BAUD_RATE			B9600
 
 int exitFlag=0;
+int manFlag = 0;
+
 sem_t _xmitSema;
 
 char getch() {
@@ -177,92 +181,102 @@ void getParams(TPacket *commandPacket) {
 	flushInput();
 }
 
-void sendCommand(char command) {
+void sendCommand(char* command) {
 	TPacket commandPacket;
-
 	commandPacket.packetType = PACKET_TYPE_COMMAND;
-	command = tolower(command);
 	
-	printf("\n");
-	switch(command) {
-		case FORWARD:
-			// getParams(&commandPacket);
-			// commandPacket.params[0] = 50; // Speed
-			// commandPacket.params[1] = 10; // Distance
-			printf("FORWARD\n");
-			commandPacket.command = COMMAND_FORWARD;
-			sendPacket(&commandPacket);
-			break;
+	if (strlen(command) == 1)
+	{
+		switch(*command) {
+			case FORWARD:
+				// getParams(&commandPacket);
+				// commandPacket.params[0] = 50; // Speed
+				// commandPacket.params[1] = 10; // Distance
+				printf("FORWARD\n");
+				commandPacket.command = COMMAND_FORWARD;
+				sendPacket(&commandPacket);
+				break;
 
-		case REVERSE:
-			// getParams(&commandPacket);
-			printf("REVERSE\n");
-			commandPacket.command = COMMAND_REVERSE;
-			sendPacket(&commandPacket);
-			break;
+			case REVERSE:
+				// getParams(&commandPacket);
+				printf("REVERSE\n");
+				commandPacket.command = COMMAND_REVERSE;
+				sendPacket(&commandPacket);
+				break;
 
-		case LEFT:
-			// getParams(&commandPacket);
-			printf("LEFT\n");
-			commandPacket.command = COMMAND_TURN_LEFT;
-			sendPacket(&commandPacket);
-			break;
+			case LEFT:
+				// getParams(&commandPacket);
+				printf("LEFT\n");
+				commandPacket.command = COMMAND_TURN_LEFT;
+				sendPacket(&commandPacket);
+				break;
 
-		case RIGHT:
-			// getParams(&commandPacket);
-			printf("RIGHT\n");
-			commandPacket.command = COMMAND_TURN_RIGHT;
-			sendPacket(&commandPacket);
-			break;
+			case RIGHT:
+				// getParams(&commandPacket);
+				printf("RIGHT\n");
+				commandPacket.command = COMMAND_TURN_RIGHT;
+				sendPacket(&commandPacket);
+				break;
 
-		case STOP:
-			printf("STOP\n");
-			commandPacket.command = COMMAND_STOP;
-			sendPacket(&commandPacket);
-			break;
+			case STOP:
+				printf("STOP\n");
+				commandPacket.command = COMMAND_STOP;
+				sendPacket(&commandPacket);
+				break;
 
-		case CLEAR:
-			printf("CLEAR\n");
-			commandPacket.command = COMMAND_CLEAR_STATS;
-			// commandPacket.params[0] = 0;
-			sendPacket(&commandPacket);
-			break;
+			case CLEAR:
+				printf("CLEAR\n");
+				commandPacket.command = COMMAND_CLEAR_STATS;
+				// commandPacket.params[0] = 0;
+				sendPacket(&commandPacket);
+				break;
 
-		case STATS:
-			printf("STATS\n");
-			commandPacket.command = COMMAND_GET_STATS;
-			sendPacket(&commandPacket);
-			break;
-			
-		case SPEED_ONE:
-			printf("SPEED SLOW\n");
-			commandPacket.command = COMMAND_SPEED_SLOW;
-			sendPacket(&commandPacket);
-			break;
-			
-		case SPEED_TWO:
-			printf("SPEED MID\n");
-			commandPacket.command = COMMAND_SPEED_MID;
-			sendPacket(&commandPacket);
-			break;
-			
-		case SPEED_THREE:
-			printf("SPEED FAST\n");
-			commandPacket.command = COMMAND_SPEED_FAST;
-			sendPacket(&commandPacket);
-			break;
+			case STATS:
+				printf("STATS\n");
+				commandPacket.command = COMMAND_GET_STATS;
+				sendPacket(&commandPacket);
+				break;
+			case MANUAL:
+				manFlag = 1 - manFlag;
+				printf("\nCurrent mode is %s: \n", manFlag ? "MANUAL" : "AUTO");
+				break;
+			case SPEED_ONE:
+				printf("SPEED SLOW\n");
+				commandPacket.command = COMMAND_SPEED_SLOW;
+				sendPacket(&commandPacket);
+				break;
 
-		case QUIT:
-			printf("QUIT\n");
-			exitFlag=1;
-			break;
+			case SPEED_TWO:
+				printf("SPEED MID\n");
+				commandPacket.command = COMMAND_SPEED_MID;
+				sendPacket(&commandPacket);
+				break;
 
-		default:
-			printf("Bad command\n");
+			case SPEED_THREE:
+				printf("SPEED FAST\n");
+				commandPacket.command = COMMAND_SPEED_FAST;
+				sendPacket(&commandPacket);
+				break;
+
+			case QUIT:
+				printf("QUIT\n");
+				exitFlag=1;
+				break;
+
+			default:
+				printf("Bad command\n");
+		}
+	}
+	else
+	{
+		commandPacket.command = COMMAND_MANUAL;
+		commandPacket.data = command;
+		sendPacket(&commandPacket);
 	}
 }
 
-int main() {
+int main()
+{
 	// Connect to the Arduino
 	startSerial(PORT_NAME, BAUD_RATE, 8, 'N', 1, 5);
 
@@ -282,16 +296,25 @@ int main() {
 	helloPacket.packetType = PACKET_TYPE_HELLO;
 	sendPacket(&helloPacket);
 
-	printf("\nWASD for movement, f=stop, e=get stats, r=clear stats, q=exit\n");
-	while(!exitFlag) {
-		char ch;
-		// scanf("%c", &ch);
-		ch = getch();
-		
-		// Purge extraneous characters from input stream
-		// flushInput();
+	printf("\nToggle Mode = M, wasd for movement, f to stop ALEX, e = get stats, r = clear stats, q = quit\n");
+	printf("\nRange of inputs in manual mode: Speed [0,100] , Distance [0,10], Direction [w,a,s,d]\n");
+	printf("Format:PWM(%) Dist(cm) Direction(wasd)\n");
 
-		sendCommand(ch);
+	char userStr[INPUT_MAX];		
+	char ch;
+	
+	while(!exitFlag) {
+		if (manFlag == 0)
+		{
+			ch = getch();
+			ch = tolower(ch);
+			sendCommand(&ch);
+		}
+		else 
+		{
+			userStr = fgets(userStr,INPUT_MAX,stdin);
+			sendCommand(userStr);
+		}
 	}
 
 	printf("Closing connection to Arduino.\n");

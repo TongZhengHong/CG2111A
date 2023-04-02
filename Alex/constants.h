@@ -60,6 +60,7 @@ typedef enum
   COMMAND_SPEED_SLOW = 7,
   COMMAND_SPEED_MID = 8,
   COMMAND_SPEED_FAST = 9,
+  COMMAND_MANUAL = 10,
 } TCommandType;
 #endif
 

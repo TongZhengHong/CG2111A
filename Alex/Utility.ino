@@ -58,11 +58,11 @@ void clearOneCounter(int which) {
       break;
 
     case 3:
-      leftRevs = 0;
+      leftReverseTicks = 0;
       break;
 
     case 4:
-      rightRevs = 0;
+      rightReverseTicks = 0;
       break;
 
     case 5:
