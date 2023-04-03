@@ -40,6 +40,23 @@ unsigned long targetTurnTicks;
 #define RR                  11  // Right reverse pin
 
 /*
+      Alex's Colour Sensor
+*/
+#define S1 8
+#define S0 9
+#define S2 12
+#define S3 13
+#define sensorOut 4
+
+// Frequency read by the photodiodes
+int redFreq = 0;
+int greenFreq = 0;
+
+// Stores the red and green colour values
+int redColour = 0;
+int greenColour = 0;
+
+/*
       Alex's State Variables
 */
 
@@ -74,7 +91,8 @@ void setup() {
   
   setupMotors();
   startMotors();
-  
+  setupColor();
+
   enablePullups();
   initializeState();
   sei();
