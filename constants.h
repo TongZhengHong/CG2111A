@@ -17,6 +17,8 @@ const char CLEAR = 'r';
 const char QUIT = 'q';
 const char SPEED_CONFIG = '1';
 const char MANUAL = 'm';
+const char DIST_MIN= 5;
+const char DIST_MAX = 15;
 
 // Packet types
 typedef enum
