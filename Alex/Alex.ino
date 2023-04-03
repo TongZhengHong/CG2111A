@@ -7,13 +7,15 @@
 #include "packet.h"
 #include "constants.h"
 
-volatile TDirection dir = STOP;
-volatile TMotorSpeed speed = SPEED_FAST;
+bool MANUAL_MODE = false;
 
-volatile TDistances distance = DIST_MID;
+volatile TDirection dir = STOP;
+volatile int speed = SPEED_FAST;
+
+volatile int distance = DIST_MID;
 unsigned long targetDist;
 
-volatile TAngles angle = ANG_MID;
+volatile int angle = ANG_MID;
 unsigned long targetTurnTicks;
 
 /*
@@ -103,21 +105,29 @@ void handleCommand(TPacket *command) {
     // For movement commands, param[0] = distance, param[1] = speed.
     case COMMAND_FORWARD:
       sendOK();
+      if (MANUAL_MODE) 
+        distance = (float) command->params[1];
       forward(); //(float) command->params[0], (float) command->params[1]
       break;
 
     case COMMAND_REVERSE:
       sendOK();
+      if (MANUAL_MODE) 
+        distance = (float) command->params[1];
       reverse();
       break;
 
     case COMMAND_TURN_LEFT:
       sendOK();
+      if (MANUAL_MODE) 
+        angle = (float) command->params[1];
       left();
       break;
 
     case COMMAND_TURN_RIGHT:
       sendOK();
+      if (MANUAL_MODE) 
+        angle = (float) command->params[1];
       right();
       break;
 
@@ -152,6 +162,15 @@ void handleCommand(TPacket *command) {
     case COMMAND_CLEAR_STATS:
       sendOK();
       clearOneCounter(command->params[0]);
+      break;
+
+    case COMMAND_MANUAL:
+      sendOK();
+      MANUAL_MODE = !MANUAL_MODE; // Toggle manual mode
+      if (!MANUAL_MODE) { //Reset distance and angle when toggle back to auto mode
+        distance = DIST_MID;
+        angle = ANG_MID;
+      }
       break;
 
     default:

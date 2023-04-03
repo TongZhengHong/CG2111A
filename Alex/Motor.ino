@@ -28,22 +28,22 @@ void startMotors() { // Start PWM for motors
   TCCR2B = B00000011;
 }
 
-void rightMotorReverse() {
+void rightMotorForward() {
   TCCR1A = B00100001; // Enable waveform on OC1B pin
   TCCR2A = B00000001; // Disable waveform on OC2A pin
 }
 
-void rightMotorForward() {
+void rightMotorReverse() {
   TCCR1A = B00000001; // Disable waveform on OC1B pin
   TCCR2A = B10000001; // Enable waveform on OC2A pin
 }
 
-void leftMotorReverse() {
+void leftMotorForward() {
   // Enable OC0A pin, Disable OC0B pin
   TCCR0A = B10000001; 
 }
 
-void leftMotorForward() {
+void leftMotorReverse() {
   // Disable OC0A pin, Enable OC0B pin
   TCCR0A = B00100001; 
 }
@@ -107,8 +107,8 @@ void left() { // float ang, float speed
   unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
   targetTurnTicks = leftReverseTicks + deltaTicks;
 
-  leftMotorReverse();
-  rightMotorForward();
+  leftMotorForward();
+  rightMotorReverse();
 
 //  analogWrite(LR, val);
 //  analogWrite(RF, val);
@@ -124,8 +124,8 @@ void right() { // float ang, float speed
   unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
   targetTurnTicks = rightReverseTicks + deltaTicks;
 
-  leftMotorForward();
-  rightMotorReverse();
+  leftMotorReverse();
+  rightMotorForward();
   
 //  analogWrite(RR, val);
 //  analogWrite(LF, val);

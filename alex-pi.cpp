@@ -18,6 +18,8 @@
 int exitFlag=0;
 sem_t _xmitSema;
 
+static bool send_status = false;
+
 char getch() {
 	char buf = 0;
 	struct termios old = {0};
@@ -73,6 +75,7 @@ void handleResponse(TPacket *packet) {
 	switch(packet->command) {
 		case RESP_OK:
 			printf("Command OK\n");
+			send_status = false;
 		break;
 
 		case RESP_STATUS:
@@ -258,6 +261,9 @@ void sendCommand(char command, bool manual) {
 		case MANUAL:
 			if (manual) printf("SET TO MANUAL MODE\n");
 			else printf("SET TO AUTO MODE\n");
+			
+			commandPacket.command = COMMAND_MANUAL;
+			sendPacket(&commandPacket);
 			break;
 			
 		default:
@@ -294,10 +300,13 @@ int main() {
 			printf("\nWASD for movement, f=stop, e=get stats, r=clear stats, q=exit\n");
 			scanf("%c", &ch);
 			flushInput(); // Purge extraneous characters from input stream
-		} else ch = getch();
+		} else ch = getch(); // Auto mode
 		
 		manual = ch == MANUAL ? !manual : manual; // Only toggle when 'm' clicked
-		sendCommand(ch, manual);
+		if (!send_status) {
+			sendCommand(ch, manual);
+			send_status = true;
+		}
 	}
 
 	printf("Closing connection to Arduino.\n");

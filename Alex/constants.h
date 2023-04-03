@@ -18,13 +18,13 @@ typedef enum {
 typedef enum {
   DIST_SHORT = 2,
   DIST_MID = 5,
-  DIST_FAR = 8
+  DIST_FAR = 20
 } TDistances;
 
 typedef enum {
-  ANG_SHORT = 7,
-  ANG_MID = 10,
-  ANG_FAR = 13
+  ANG_SHORT = 5,
+  ANG_MID = 8,
+  ANG_FAR = 11
 } TAngles;
 
 // Alex directions
@@ -73,6 +73,7 @@ typedef enum
   COMMAND_SPEED_SLOW = 7,
   COMMAND_SPEED_MID = 8,
   COMMAND_SPEED_FAST = 9,
+  COMMAND_MANUAL = 10
 } TCommandType;
 #endif
 
