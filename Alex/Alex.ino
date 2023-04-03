@@ -107,21 +107,6 @@ void handleCommand(TPacket *command) {
       stop();
       break;
 
-    case COMMAND_SPEED_SLOW:
-      sendOK();
-      speed = SPEED_SLOW;
-      break;
-
-    case COMMAND_SPEED_MID:
-      sendOK();
-      speed = SPEED_MID;
-      break;
-
-    case COMMAND_SPEED_FAST:
-      sendOK();
-      speed = SPEED_FAST;
-      break;
-
     case COMMAND_GET_STATS:
       sendOK();
       sendStatus();
@@ -131,33 +116,20 @@ void handleCommand(TPacket *command) {
       sendOK();
       clearOneCounter(command->params[0]);
       break;
-
+//Speed config is meant for auto
+    case COMMAND_SPEED_CONFIG:
+      sendOK();
+      TTokenType tokenError = checkSpeedToken(command->data);
+      if (tokenError)
+      {
+	      sendBadToken();
+	      break;
+      }
+      speed = strtof(command->data, &junkChar);
+      break;
     case COMMAND_MANUAL:
       sendOK();
-      char *curWord = strtok(command->data,' ');
-      size_t tokenCnt = 0;
-      char *junkChar;
-      while (curWord != NULL)
-      {
-	      if (tokenCnt == 0)
-	      {
-		      speed = strtof(curWord, &junkChar);
-	      }
-	      else if (tokenCnt == 1)
-	      {
-		      dist = strtof(curWord, &junkChar);
-	      }
-	      else if (tokenCnt == 2)
-	      {
-		      *dir = curWord;
-	      }
-	      else
-	      {
-		      printf("Warning, extra tokens are discarded\n");
-	      }
-	      curWord = strtok(NULL, ' ');
-	      tokenCnt++;
-      }
+      processTokens(command->data);
       manualMove(speed,dist,*dir);
       break;
 
@@ -165,7 +137,72 @@ void handleCommand(TPacket *command) {
       sendBadCommand();
   }
 }
-
+TTokenType checkSpeedToken(char *userStr)
+{
+        char *junkStr;
+        if (strtol(userStr, &junkStr,10) < 0 || strtol(userStr, &junkStr,10) > 100)
+        {
+                return SPEED_TOKEN_BAD;
+        }
+        else {
+                return TOKEN_GOOD;
+        }
+}
+void processTokens(char *userStr)
+{
+	int badTokens = 0;
+	TTokenType* tokenError = tokenStatuses(userStr);
+	for (int i = 0; i < 3; i++)
+	{
+		if (tokenError[i])
+		{
+			badTokens++;
+			printf("token error %i\n", i+1);
+		}	
+	}
+	if (badTokens)
+	{
+		sendBadToken(tokenError[0]);
+		sendBadToken(tokenError[1]);
+		sendBadtoken(tokenError[2]);
+		break;
+	}
+	else
+	{
+		char *junkStr;
+		char *curToken = strtok(userStr,' ');
+		speed = strtof(curToken, &junkStr);
+		curToken = strtok(NULL,' ');
+		dist = strtof(curToken, &junkStr);
+		curToken = strtok(NULL,' ');
+		*dir = curToken;
+	}
+}
+TTokenType* tokenStatuses(char *userStr)
+{
+        char *junkStr;
+        TTokenType tokenStatuses[3] = {TOKEN_GOOD};
+	char *curToken = strtok(userStr,' ');
+        long checkSpeed = strtol(curToken, &junkStr, 10);
+	curToken = strtok(NULL,' ');
+        long checkDist = strtol(curToken, &junkStr, 10);
+	curToken = strtok(NULL,' ');
+        char checkDir = curToken;
+        if ( checkSpeed < 0 || checkSpeed > 100 )
+        {
+                tokenStatuses[0] = SPEED_TOKEN_BAD;
+        }
+        if (checkDist < DIST_LOW || checkDist > DIST_HIGH)
+        {
+                tokenStatuses[1] = DIST_TOKEN_BAD;
+        }
+        if (checkDir != 'w' || checkDir != 'a' || checkDir != 's' || checkDir != 'd') 
+        {
+                tokenStatuses[2] = DIR_TOKEN_BAD;
+        }
+        return tokenStatuses;
+}
+				
 void handlePacket(TPacket *packet) {
   switch (packet->packetType) {
     case PACKET_TYPE_COMMAND:

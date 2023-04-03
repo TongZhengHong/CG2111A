@@ -8,20 +8,20 @@
  */
 
 // Motor speeds
-typedef enum {
+/*typedef enum {
   SPEED_SLOW = 60,
   SPEED_MID = 80,
   SPEED_FAST = 100
-} TMotorSpeed;
+} TMotorSpeed*/;
 
 // Alex directions
-typedef enum {
+/*typedef enum {
   STOP = 0,
   FORWARD = 1,
   REVERSE = 2,
   LEFT = 3,
   RIGHT = 4
-} TDirection;
+} TDirection;*/
 
 // Packet types
 typedef enum
@@ -41,10 +41,17 @@ typedef enum
   RESP_BAD_PACKET = 2,
   RESP_BAD_CHECKSUM = 3,
   RESP_BAD_COMMAND = 4,
-  RESP_BAD_RESPONSE = 5 
+  RESP_BAD_RESPONSE = 5,
+  RESP_BAD_TOKEN = 6;
 } TResponseType;
 
-
+typedef enum
+{
+	TOKEN_GOOD = 0,
+	SPEED_TOKEN_BAD = 1,
+	DIST_TOKEN_BAD = 2,
+	DIR_TOKEN_BAD = 3
+} TTokenType;
 // Commands
 // For direction commands, param[0] = distance in cm to move
 // param[1] = speed
@@ -57,10 +64,8 @@ typedef enum
   COMMAND_STOP = 4,
   COMMAND_GET_STATS = 5,
   COMMAND_CLEAR_STATS = 6,
-  COMMAND_SPEED_SLOW = 7,
-  COMMAND_SPEED_MID = 8,
-  COMMAND_SPEED_FAST = 9,
-  COMMAND_MANUAL = 10,
+  COMMAND_SPEED_CONFIG = 7,
+  COMMAND_MANUAL = 8,
 } TCommandType;
 #endif
 

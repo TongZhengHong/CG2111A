@@ -15,9 +15,7 @@ const char STOP = 'f';
 const char STATS = 'e';
 const char CLEAR = 'r';
 const char QUIT = 'q';
-const char SPEED_ONE = '1';
-const char SPEED_TWO = '2';
-const char SPEED_THREE = '3';
+const char SPEED_CONFIG = '1';
 const char MANUAL = 'm';
 
 // Packet types
@@ -30,6 +28,14 @@ typedef enum
   PACKET_TYPE_HELLO = 4
 } TPacketType;
 
+//Token types
+typedef enum
+{
+	TOKEN_GOOD = 0,
+	SPEED_TOKEN_BAD = 1,
+	DIST_TOKEN_BAD = 2,
+	DIR_TOKEN_BAD = 3
+} TTokenType;
 // Response types. This goes into the command field
 typedef enum
 {
@@ -38,7 +44,8 @@ typedef enum
   RESP_BAD_PACKET = 2,
   RESP_BAD_CHECKSUM = 3,
   RESP_BAD_COMMAND = 4,
-  RESP_BAD_RESPONSE = 5 
+  RESP_BAD_RESPONSE = 5,
+  RESP_BAD_TOKEN = 6
 } TResponseType;
 
 
@@ -54,10 +61,8 @@ typedef enum
   COMMAND_STOP = 4,
   COMMAND_GET_STATS = 5,
   COMMAND_CLEAR_STATS = 6,
-  COMMAND_SPEED_SLOW = 7,
-  COMMAND_SPEED_MID = 8,
-  COMMAND_SPEED_FAST = 9,
-  COMMAND_MANUAL = 10,
+  COMMAND_SPEED_CONFIG= 7,
+  COMMAND_MANUAL = 8
 } TCommandType;
 #endif
 

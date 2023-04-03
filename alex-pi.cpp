@@ -104,7 +104,9 @@ void handleErrorResponse(TPacket *packet) {
 		case RESP_BAD_RESPONSE:
 			printf("Arduino received unexpected response\n");
 		break;
-
+		case RESP_BAD_TOKEN:
+		printf("Arduino received bad token in command parameters\n");
+		break;
 		default:
 			printf("Arduino reports a weird error\n");
 	}
@@ -238,24 +240,21 @@ void sendCommand(char* command) {
 				manFlag = 1 - manFlag;
 				printf("\nCurrent mode is %s: \n", manFlag ? "MANUAL" : "AUTO");
 				break;
-			case SPEED_ONE:
-				printf("SPEED SLOW\n");
-				commandPacket.command = COMMAND_SPEED_SLOW;
+		//the speed config is designed for auto, use manual for more precision
+
+			case SPEED_CONFIG:
+				printf("Enter Desired Preset Speed: ");
+				char userStr[MAX_STR_LEN];	
+				userStr = fgets(userStr,MAX_STR_LEN,stdin);
+				TTokenType tokenError = checkSpeedToken(userStr);
+				if (tokenError)
+				{
+					break;
+				}
+				commandPacket.command = COMMAND_SPEED_CONFIG;
+				commandPacket.data = userStr;
 				sendPacket(&commandPacket);
 				break;
-
-			case SPEED_TWO:
-				printf("SPEED MID\n");
-				commandPacket.command = COMMAND_SPEED_MID;
-				sendPacket(&commandPacket);
-				break;
-
-			case SPEED_THREE:
-				printf("SPEED FAST\n");
-				commandPacket.command = COMMAND_SPEED_FAST;
-				sendPacket(&commandPacket);
-				break;
-
 			case QUIT:
 				printf("QUIT\n");
 				exitFlag=1;
@@ -267,10 +266,56 @@ void sendCommand(char* command) {
 	}
 	else
 	{
-		commandPacket.command = COMMAND_MANUAL;
-		commandPacket.data = command;
-		sendPacket(&commandPacket);
+		int badTokens = 0;
+		TTokenType* tokenError = checkTokens(command);
+		for (int i = 0; i < 3; i++)
+		{
+			if (tokenError[i])
+			{
+				badTokens++;
+				printf("Local token error %i\n", i+1);
+			}	
+		}
+		if (!badTokens)
+		{
+			commandPacket.command = COMMAND_MANUAL;
+			commandPacket.data = command;
+			sendPacket(&commandPacket);
+		}
 	}
+}
+
+TTokenType checkSpeedToken(char *userStr)
+{
+	char *junkStr;
+	if (strtol(userStr, &junkStr,10) < 0 || strtol(userStr, &junkStr,10) > 100)
+	{
+		return SPEED_TOKEN_BAD;
+	}
+	else {
+		return TOKEN_GOOD;
+	}
+}
+TTokenType* checkTokens(char *userStr)
+{
+	char *junkStr;
+	TTokenType tokenStatuses[3] = {TOKEN_GOOD};
+	long checkSpeed = strtol(userStr, &junkStr, 10);
+	long checkDist = strtol(userStr, &junkStr, 10);
+	char checkDir = junkStr;
+	if ( checkSpeed < 0 || checkSpeed > 100 )
+	{
+       		tokenStatuses[0] = SPEED_TOKEN_BAD;
+	}
+	if (checkDist < DIST_LOW || checkDist > DIST_HIGH)
+	{
+		tokenStatuses[1] = DIST_TOKEN_BAD;
+	}
+	if (checkDir != 'w' || checkDir != 'a' || checkDir != 's' || checkDir != 'd') )
+	{
+		tokenStatuses[2] = DIR_TOKEN_BAD;
+	}	
+	return tokenStatuses;
 }
 
 int main()
@@ -298,10 +343,12 @@ int main()
 	printf("\nRange of inputs in manual mode: Speed [0,100] , Distance [0,10], Direction [w,a,s,d]\n");
 	printf("Format:PWM(%) Dist(cm) Direction(wasd)\n");
 
-	char userStr[INPUT_MAX];		
+	char userStr[MAX_STR_LEN];		
 	char ch;
 	
 	while(!exitFlag) {
+		//auto == less latency(because of getch()), less control
+		//manual == more latency(because of fgets + string manipulation), more control 
 		if (manFlag == 0)
 		{
 			ch = getch();
@@ -310,7 +357,7 @@ int main()
 		}
 		else 
 		{
-			userStr = fgets(userStr,INPUT_MAX,stdin);
+			userStr = fgets(userStr,MAX_STR_LEN,stdin);
 			sendCommand(userStr);
 		}
 	}

@@ -159,7 +159,7 @@ void stop() {
 void manualMove(float speed, float dist, char dir)
 {
 	int val = pwmVal(speed);
-	uint32_t temp;
+	unsigned long temp;
 	switch (dir) {
 		case 'w':
 			forward();

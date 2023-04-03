@@ -58,6 +58,32 @@ void sendBadPacket() {
   sendResponse(&badPacket);
 }
 
+void sendBadToken(TTokenType tokenErrMsg) {
+	//Tell the Pi that the user may have keyed the 
+	//parameters wrongly, otherwise the checksum failed
+	TPacket badToken;
+	badToken.packetType = PACKET_TYPE_ERROR;
+	badToken.command = RESP_BAD_TOKEN;
+	sendResponse(&badToken);
+	if (tokenErrMsg == 1)
+	{
+		sendMessage("Speed Data Error: wrong range of values received\n");
+	}
+	else if (tokenErrMsg == 2)
+	{
+		sendMessage("Distance Data Error: wrong range of values received\n");
+	}
+	else if (tokenErrMsg == 3)
+	{
+		sendMessage("Direction Data Error: character entered not w,a,s,d\n");
+	}
+	else
+	{
+		sendMessage("This token is fine, but there is at least one other token that is wrong\n");
+	}
+}
+
+
 void sendBadChecksum() {
   // Tell the Pi that it sent us a packet with a bad
   // checksum.
