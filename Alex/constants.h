@@ -14,6 +14,19 @@ typedef enum {
   SPEED_FAST = 100
 } TMotorSpeed;
 
+// Distances
+typedef enum {
+  DIST_SHORT = 2,
+  DIST_MID = 5,
+  DIST_FAR = 8
+} TDistances;
+
+typedef enum {
+  ANG_SHORT = 7,
+  ANG_MID = 10,
+  ANG_FAR = 13
+} TAngles;
+
 // Alex directions
 typedef enum {
   STOP = 0,

@@ -8,7 +8,13 @@
 #include "constants.h"
 
 volatile TDirection dir = STOP;
-volatile TMotorSpeed speed = SPEED_SLOW;
+volatile TMotorSpeed speed = SPEED_FAST;
+
+volatile TDistances distance = DIST_MID;
+unsigned long targetDist;
+
+volatile TAngles angle = ANG_MID;
+unsigned long targetTurnTicks;
 
 /*
    Alex's configuration constants
@@ -104,17 +110,20 @@ void handleCommand(TPacket *command) {
 
     case COMMAND_SPEED_SLOW:
       sendOK();
-      speed = SPEED_SLOW;
+      distance = DIST_SHORT;
+      angle = ANG_SHORT;
       break;
 
     case COMMAND_SPEED_MID:
       sendOK();
-      speed = SPEED_MID;
+      distance = DIST_MID;
+      angle = ANG_MID;
       break;
 
     case COMMAND_SPEED_FAST:
       sendOK();
-      speed = SPEED_FAST;
+      distance = DIST_FAR;
+      angle = ANG_FAR;
       break;
 
     case COMMAND_GET_STATS:
@@ -159,27 +168,27 @@ void loop() {
   //  float pi = 3.141592654;
   //  dbprintf("PI is %3.2f\n", pi);
 
-  //  if (dir == FORWARD) {
-  //    if (forwardDist >= targetDist) {
-  //      targetDist = 0;
-  //      stop();
-  //    }
-  //  } else if (dir == REVERSE) {
-  //    if (reverseDist >= targetDist) {
-  //      targetDist = 0;
-  //      stop();
-  //    }
-  //  } else if (dir == RIGHT) {
-  //    if (rightReverseTicks >= targetTurnTicks) {
-  //      targetTurnTicks = 0;
-  //      stop();
-  //    }
-  //  } else if (dir == LEFT) {
-  //    if (leftReverseTicks >= targetTurnTicks) {
-  //      targetTurnTicks = 0;
-  //      stop();
-  //    }
-  //  }
+    if (dir == FORWARD) {
+      if (forwardDist >= targetDist) {
+        targetDist = 0;
+        stop();
+      }
+    } else if (dir == REVERSE) {
+      if (reverseDist >= targetDist) {
+        targetDist = 0;
+        stop();
+      }
+    } else if (dir == RIGHT) {
+      if (rightReverseTicks >= targetTurnTicks) {
+        targetTurnTicks = 0;
+        stop();
+      }
+    } else if (dir == LEFT) {
+      if (leftReverseTicks >= targetTurnTicks) {
+        targetTurnTicks = 0;
+        stop();
+      }
+    }
 
   TPacket recvPacket; // This holds commands from the Pi
   TResult result = readPacket(&recvPacket);

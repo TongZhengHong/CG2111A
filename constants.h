@@ -15,6 +15,7 @@ const char STOP = 'f';
 const char STATS = 'e';
 const char CLEAR = 'r';
 const char QUIT = 'q';
+const char MANUAL = 'm';
 const char SPEED_ONE = '1';
 const char SPEED_TWO = '2';
 const char SPEED_THREE = '3';

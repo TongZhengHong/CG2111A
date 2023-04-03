@@ -177,7 +177,7 @@ void getParams(TPacket *commandPacket) {
 	flushInput();
 }
 
-void sendCommand(char command) {
+void sendCommand(char command, bool manual) {
 	TPacket commandPacket;
 
 	commandPacket.packetType = PACKET_TYPE_COMMAND;
@@ -186,31 +186,29 @@ void sendCommand(char command) {
 	printf("\n");
 	switch(command) {
 		case FORWARD:
-			// getParams(&commandPacket);
-			// commandPacket.params[0] = 50; // Speed
-			// commandPacket.params[1] = 10; // Distance
 			printf("FORWARD\n");
+			if (manual) getParams(&commandPacket);
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
 			break;
 
 		case REVERSE:
-			// getParams(&commandPacket);
 			printf("REVERSE\n");
+			if (manual) getParams(&commandPacket);
 			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
 			break;
 
 		case LEFT:
-			// getParams(&commandPacket);
 			printf("LEFT\n");
+			if (manual) getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
 			break;
 
 		case RIGHT:
-			// getParams(&commandPacket);
 			printf("RIGHT\n");
+			if (manual) getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
 			break;
@@ -256,7 +254,12 @@ void sendCommand(char command) {
 			printf("QUIT\n");
 			exitFlag=1;
 			break;
-
+			
+		case MANUAL:
+			if (manual) printf("SET TO MANUAL MODE\n");
+			else printf("SET TO AUTO MODE\n");
+			break;
+			
 		default:
 			printf("Bad command\n");
 	}
@@ -281,17 +284,20 @@ int main() {
 
 	helloPacket.packetType = PACKET_TYPE_HELLO;
 	sendPacket(&helloPacket);
-
+	
+	int manual = false;
 	printf("\nWASD for movement, f=stop, e=get stats, r=clear stats, q=exit\n");
 	while(!exitFlag) {
 		char ch;
-		// scanf("%c", &ch);
-		ch = getch();
 		
-		// Purge extraneous characters from input stream
-		// flushInput();
-
-		sendCommand(ch);
+		if (manual) {
+			printf("\nWASD for movement, f=stop, e=get stats, r=clear stats, q=exit\n");
+			scanf("%c", &ch);
+			flushInput(); // Purge extraneous characters from input stream
+		} else ch = getch();
+		
+		manual = ch == MANUAL ? !manual : manual; // Only toggle when 'm' clicked
+		sendCommand(ch, manual);
 	}
 
 	printf("Closing connection to Arduino.\n");

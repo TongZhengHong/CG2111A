@@ -67,16 +67,12 @@ int pwmVal(float percent) {
   return (int) ((percent / 100.0) * 255.0);
 }
 
-// Move Alex forward "dist" cm at speed "speed".
-// "speed" is expressed as a percentage. E.g. 50 is
-// move forward at half speed.
-// Specifying a distance of 0 means Alex will
-// continue moving forward indefinitely.
+
 void forward() { // float dist, float speed
   dir = FORWARD;
   int val = pwmVal(speed);
 
-//  targetDist = forwardDist + dist;
+  targetDist = forwardDist + distance;
   
   leftMotorForward();
   rightMotorForward();
@@ -87,16 +83,12 @@ void forward() { // float dist, float speed
 //  analogWrite(RR, 0);
 }
 
-// Reverse Alex "dist" cm at speed "speed".
-// "speed" is expressed as a percentage. E.g. 50 is
-// reverse at half speed.
-// Specifying a distance of 0 means Alex will
-// continue reversing indefinitely.
+
 void reverse() { // float dist, float speed
   dir = REVERSE;
   int val = pwmVal(speed);
   
-//  targetDist = reverseDist + dist;
+  targetDist = reverseDist + distance;
 
   leftMotorReverse();
   rightMotorReverse();
@@ -107,17 +99,13 @@ void reverse() { // float dist, float speed
 //  analogWrite(RF, 0);
 }
 
-// Turn Alex left "ang" degrees at speed "speed".
-// "speed" is expressed as a percentage. E.g. 50 is
-// turn left at half speed.
-// Specifying an angle of 0 degrees will cause Alex to
-// turn left indefinitely.
+
 void left() { // float ang, float speed
   dir = LEFT;
-  int val = pwmVal(speed/2); // Use half of normal speed for turn
+  int val = pwmVal(speed);
 
-//  unsigned long deltaTicks = (ang / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
-//  targetTurnTicks = leftReverseTicks + deltaTicks;
+  unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
+  targetTurnTicks = leftReverseTicks + deltaTicks;
 
   leftMotorReverse();
   rightMotorForward();
@@ -128,17 +116,13 @@ void left() { // float ang, float speed
 //  analogWrite(RR, 0);
 }
 
-// Turn Alex right "ang" degrees at speed "speed".
-// "speed" is expressed as a percentage. E.g. 50 is
-// turn left at half speed.
-// Specifying an angle of 0 degrees will cause Alex to
-// turn right indefinitely.
+
 void right() { // float ang, float speed
   dir = RIGHT;
-  int val = pwmVal(speed/2); // Use half of normal speed for turn
+  int val = pwmVal(speed); 
 
-//  unsigned long deltaTicks = (ang / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
-//  targetTurnTicks = rightReverseTicks + deltaTicks;
+  unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
+  targetTurnTicks = rightReverseTicks + deltaTicks;
 
   leftMotorForward();
   rightMotorReverse();
@@ -148,6 +132,7 @@ void right() { // float ang, float speed
 //  analogWrite(LR, 0);
 //  analogWrite(RF, 0);
 }
+
 
 void stop() {
   dir = STOP;
