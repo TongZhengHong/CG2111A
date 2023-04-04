@@ -23,6 +23,9 @@
   RIGHT = 4
 } TDirection;*/
 
+const float PRESET_SPEED = 60 
+const float PRESET_DIST = 5
+const char PRESET_DIR = 'f' 
 // Packet types
 typedef enum
 {

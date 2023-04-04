@@ -18,7 +18,8 @@
 
 int exitFlag=0;
 int manFlag = 0;
-TTokenType tokenStatuses[3] = {TOKEN_GOOD};
+char ch;
+TTokenType tokenStatuses[3] = {SPEED_TOKEN_BAD};
 
 sem_t _xmitSema;
 
@@ -186,137 +187,169 @@ void getParams(TPacket *commandPacket) {
 TTokenType checkSpeedToken(char *userStr)
 {
 	char *junkStr;
-	if (strtol(userStr, &junkStr,10) < 0 || strtol(userStr, &junkStr,10) > 100)
+	long speedToken = strtol(userStr, &junkStr, 10);
+	if (speedToken < 0 || speedToken > 100) 
 	{
 		return SPEED_TOKEN_BAD;
 	}
-	else {
-		return TOKEN_GOOD;
-	}
+	return TOKEN_GOOD;
 }
 
-TTokenType* checkTokens(char *userStr)
+void checkTokens(char *userStr)
 {
+	//generating tokens
 	char *junkStr;
-	long checkSpeed = strtol(userStr, &junkStr, 10);
-	long checkDist = strtol(userStr, &junkStr, 10);
-	char checkDir = *junkStr;
+	const char delim[2] = " ";
+	char *curTok = strtok(userStr,delim);
+	int tokenNo = 1;
+	long checkSpeed = strtol(curTok, &junkStr, 10);
+	long checkDist;
+	char checkDir;
+	//iterate through the last two tokens
+	curTok = strtok(NULL,delim);
+	while (curTok != NULL )
+	{
+		if (tokenNo == 1)
+		{
+			checkDist = strtol(curTok, &junkStr, 10);
+		}
+		else if (tokenNo == 2)
+		{
+			checkDir = curTok[0];
+		}
+		tokenNo++;
+		curTok = strtok(NULL,delim);
+	}
 	if ( checkSpeed < 0 || checkSpeed > 100 )
 	{
        		tokenStatuses[0] = SPEED_TOKEN_BAD;
+	}
+	else {
+		tokenStatuses[0] = TOKEN_GOOD;
 	}
 	if (checkDist < DIST_MIN || checkDist > DIST_MAX)
 	{
 		tokenStatuses[1] = DIST_TOKEN_BAD;
 	}
-	if (checkDir != 'w' || checkDir != 'a' || checkDir != 's' || checkDir != 'd')
+	else {
+		tokenStatuses[1] = TOKEN_GOOD;
+	}
+	if (!(checkDir == 'w' || checkDir == 'a' || checkDir == 's' || checkDir == 'd'))
 	{
 		tokenStatuses[2] = DIR_TOKEN_BAD;
 	}	
-	return tokenStatuses;
+	else {
+		tokenStatuses[2] = TOKEN_GOOD;
+	}
 }
 
 void sendCommand(char* command) {
 	TPacket commandPacket;
 	commandPacket.packetType = PACKET_TYPE_COMMAND;
 	
-	if (strlen(command) == 1)
+	if (strlen(command) <= 2)
 	{
-		switch(*command) {
+		switch(command[0]) {
 			case FORWARD: {
-				// getParams(&commandPacket);
-				// commandPacket.params[0] = 50; // Speed
-				// commandPacket.params[1] = 10; // Distance
-				printf("FORWARD\n");
-				commandPacket.command = COMMAND_FORWARD;
-				sendPacket(&commandPacket);
-				break;
-		         }
+					      // getParams(&commandPacket);
+					      // commandPacket.params[0] = 50; // Speed
+					      // commandPacket.params[1] = 10; // Distance
+					      printf("FORWARD\n");
+					      commandPacket.command = COMMAND_FORWARD;
+					      sendPacket(&commandPacket);
+					      break;
+				      }
 			case REVERSE: {
-				// getParams(&commandPacket);
-				printf("REVERSE\n");
-				commandPacket.command = COMMAND_REVERSE;
-				sendPacket(&commandPacket);
-				break;
-		         }
+					      // getParams(&commandPacket);
+					      printf("REVERSE\n");
+					      commandPacket.command = COMMAND_REVERSE;
+					      sendPacket(&commandPacket);
+					      break;
+				      }
 			case LEFT: {
-				// getParams(&commandPacket);
-				printf("LEFT\n");
-				commandPacket.command = COMMAND_TURN_LEFT;
-				sendPacket(&commandPacket);
-				break;
+					   // getParams(&commandPacket);
+					   printf("LEFT\n");
+					   commandPacket.command = COMMAND_TURN_LEFT;
+					   sendPacket(&commandPacket);
+					   break;
 				   }
 			case RIGHT: {
-				// getParams(&commandPacket);
-				printf("RIGHT\n");
-				commandPacket.command = COMMAND_TURN_RIGHT;
-				sendPacket(&commandPacket);
-				break;
+					    // getParams(&commandPacket);
+					    printf("RIGHT\n");
+					    commandPacket.command = COMMAND_TURN_RIGHT;
+					    sendPacket(&commandPacket);
+					    break;
 				    }
 
 			case STOP: {
-				printf("STOP\n");
-				commandPacket.command = COMMAND_STOP;
-				sendPacket(&commandPacket);
-				break;
+					   printf("STOP\n");
+					   commandPacket.command = COMMAND_STOP;
+					   sendPacket(&commandPacket);
+					   break;
 				   }
 
 			case CLEAR: {
-				printf("CLEAR\n");
-				commandPacket.command = COMMAND_CLEAR_STATS;
-				// commandPacket.params[0] = 0;
-				sendPacket(&commandPacket);
-				break;
+					    printf("CLEAR\n");
+					    commandPacket.command = COMMAND_CLEAR_STATS;
+					    // commandPacket.params[0] = 0;
+					    sendPacket(&commandPacket);
+					    break;
 				    }
 
 			case STATS: {
-				printf("STATS\n");
-				commandPacket.command = COMMAND_GET_STATS;
-				sendPacket(&commandPacket);
-				break; 
+					    printf("STATS\n");
+					    commandPacket.command = COMMAND_GET_STATS;
+					    sendPacket(&commandPacket);
+					    break; 
 				    }
 			case MANUAL: {
-				manFlag = 1 - manFlag;
-				printf("\nCurrent mode is %s: \n", manFlag ? "MANUAL" : "AUTO");
-				break;
+					     manFlag = 1 - manFlag;
+					     printf("\nCurrent mode is %s: \n", manFlag ? "MANUAL" : "AUTO");
+					     break;
 				     }
-		//the speed config is designed for auto, use manual for more precision
+				     //the speed config is designed for auto, use manual for more precision
 
 			case SPEED_CONFIG: {
-				printf("Enter Desired Preset Speed: ");
-				char* userStr;
-				userStr = fgets(userStr,MAX_STR_LEN,stdin);
-				TTokenType tokenError = checkSpeedToken(userStr);
-				if (tokenError)
-				{
-					break;
-				}
-				commandPacket.command = COMMAND_SPEED_CONFIG;
-				for (int i = 0; i < MAX_STR_LEN; i++)
-				{
-					commandPacket.data[0] = userStr[0];
-				}
-				sendPacket(&commandPacket);
-				break;
+						   printf("Enter Desired Preset Speed: ");
+						   char userStr[MAX_STR_LEN];
+						   char *junkStr;
+						   fgets(userStr,MAX_STR_LEN,stdin);
+						   //check token
+						   TTokenType tokenError = checkSpeedToken(userStr);
+						   if (tokenError)
+						   {
+							   printf("Speed Token Error\n");
+							   printf("token err no: %u\n",tokenError);
+							   printf("Type 1, then send speed value again (Packet not sent)\n");
+							   break;
+						   }
+						   //if token ok, send command
+						   commandPacket.command = COMMAND_SPEED_CONFIG;
+						   for (int i = 0; i < strlen(userStr) - 1; i++)
+						   {
+							   commandPacket.data[0] = userStr[0];
+						   }
+						   sendPacket(&commandPacket);
+						   break;
 					   }
 			case QUIT: {
-				printf("QUIT\n");
-				exitFlag=1;
-				break;
+					   printf("QUIT\n");
+					   exitFlag=1;
+					   break;
 				   }
 
 			default: {
-				printf("Bad command\n");
+					 printf("Bad command\n");
 				 }
 		}
 	}
 	else
 	{
 		int badTokens = 0;
-		TTokenType* tokenError = checkTokens(command);
+		checkTokens(command);
 		for (int i = 0; i < 3; i++)
 		{
-			if (tokenError[i])
+			if (tokenStatuses[i])
 			{
 				badTokens++;
 				printf("Local token error %i\n", i+1);
@@ -325,7 +358,7 @@ void sendCommand(char* command) {
 		if (!badTokens)
 		{
 			commandPacket.command = COMMAND_MANUAL;
-			for (int i = 0; i < MAX_STR_LEN; i++)
+			for (int i = 0; i < strlen(command) - 1; i++)
 			{
 				commandPacket.data[i] = command[i];
 			}
@@ -356,12 +389,11 @@ int main()
 	helloPacket.packetType = PACKET_TYPE_HELLO;
 	sendPacket(&helloPacket);
 
-	printf("\nToggle Mode = M, wasd for movement, f to stop ALEX, e = get stats, r = clear stats, q = quit\n");
+	printf("\nToggle Mode = M, Speed config = 1, wasd for movement, f to stop ALEX, e = get stats, r = clear stats, q = quit\n");
 	printf("\nRange of inputs in manual mode: Speed [0,100] , Distance [0,10], Direction [w,a,s,d]\n");
 	printf("Format:PWM(percent) Dist(cm) Direction(wasd)\n");
 
-	char* userStr;
-	char ch;
+	char userStr[MAX_STR_LEN];
 	
 	while(!exitFlag) {
 		//auto == less latency(because of getch()), less control
@@ -374,7 +406,7 @@ int main()
 		}
 		else 
 		{
-			userStr = fgets(userStr,MAX_STR_LEN,stdin);
+			fgets(userStr,MAX_STR_LEN,stdin);
 			sendCommand(userStr);
 		}
 	}
