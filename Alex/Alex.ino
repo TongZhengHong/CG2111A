@@ -1,19 +1,24 @@
-//#include "Arduino.h" 
-//#include <avr/io.h> 
+//#include "Arduino.h"
+//#include <avr/io.h>
 
 #include <serialize.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "packet.h"
 #include "constants.h"
+#define strtof(A, B) strtod(A, B)
 
 //volatile TDirection dir = STOP;
 //volatile TMotorSpeed speed = SPEED_SLOW;
 volatile float speed = PRESET_SPEED;
 volatile float dist = PRESET_DIST;
+volatile long ang = 0;
 volatile char dir = PRESET_DIR;
+
+TTokenType tokenStatuses[4] = {UNCHECKED_TOKEN};
 
 /*
    Alex's configuration constants
@@ -62,18 +67,16 @@ volatile unsigned long rightRevs;
 volatile unsigned long forwardDist;
 volatile unsigned long reverseDist;
 
-//unsigned long targetDist;
-//unsigned long targetTurnTicks;
 
 void setup() {
   cli();
   setupEINT();
   setupSerial();
   startSerial();
-  
+
   setupMotors();
   startMotors();
-  
+
   enablePullups();
   initializeState();
   sei();
@@ -81,72 +84,91 @@ void setup() {
 
 TTokenType checkSpeedToken(char *userStr)
 {
-        char *junkStr;
-        if (strtol(userStr, &junkStr,10) < 0 || strtol(userStr, &junkStr,10) > 100)
-        {
-                return SPEED_TOKEN_BAD;
-        }
-        else {
-                return TOKEN_GOOD;
-        }
+  char *junkStr;
+  if (strtol(userStr, &junkStr, 10) < 0 || strtol(userStr, &junkStr, 10) > 100)
+  {
+    return SPEED_TOKEN_BAD;
+  }
+  else {
+    return TOKEN_GOOD;
+  }
 }
 void processTokens(char *userStr)
 {
-	int badTokens = 0;
-	TTokenType* tokenError = tokenStatuses(userStr);
-	for (int i = 0; i < 3; i++)
-	{
-		if (tokenError[i])
-		{
-			badTokens++;
-			printf("token error %i\n", i+1);
-		}	
-	}
-	if (badTokens)
-	{
-		sendBadToken(tokenError[0]);
-		sendBadToken(tokenError[1]);
-		sendBadtoken(tokenError[2]);
-		break;
-	}
-	else
-	{
-		char *junkStr;
-		const char delim[2] = " ";
-		char *curToken = strtok(userStr,delim);
-		speed = strtof(curToken, &junkStr);
-		curToken = strtok(NULL,delim);
-		dist = strtof(curToken, &junkStr);
-		curToken = strtok(NULL,delim);
-		dir = *curToken;
-	}
+  int badTokens = 0;
+  for (int i = 0; i < 4; i++)
+  {
+    if (tokenStatuses[i])
+    {
+      badTokens++;
+    }
+  }
+  if (badTokens)
+  {
+    sendBadToken(tokenStatuses[0]);
+    sendBadToken(tokenStatuses[1]);
+    sendBadToken(tokenStatuses[2]);
+    sendBadToken(tokenStatuses[3]);
+    }
+  else
+  {
+    char *junkStr;
+    const char delim[2] = " ";
+    char *curToken = strtok(userStr, delim);
+    speed = strtof(curToken, &junkStr);
+    curToken = strtok(NULL, delim);
+    dist = strtof(curToken, &junkStr);
+    curToken = strtok(NULL, delim);
+    ang = strtol(curToken, &junkStr, 10);
+    curToken = strtok(NULL, delim);
+    dir = *curToken;
+  }
 }
-TTokenType* tokenStatuses(char *userStr)
+void checkTokens(char *userStr)
 {
-        char *junkStr;
-	const char delim[2] = " ";
-        TTokenType tokenStatuses[3] = {TOKEN_GOOD};
-	char *curToken = strtok(userStr,delim);
-        long checkSpeed = strtol(curToken, &junkStr, 10);
-	curToken = strtok(NULL, delim);
-        long checkDist = strtol(curToken, &junkStr, 10);
-	curToken = strtok(NULL, delim);
-        char checkDir = curToken;
-        if ( checkSpeed < 0 || checkSpeed > 100 )
-        {
-                tokenStatuses[0] = SPEED_TOKEN_BAD;
-        }
-        if (checkDist < DIST_LOW || checkDist > DIST_HIGH)
-        {
-                tokenStatuses[1] = DIST_TOKEN_BAD;
-        }
-        if (checkDir != 'w' || checkDir != 'a' || checkDir != 's' || checkDir != 'd') 
-        {
-                tokenStatuses[2] = DIR_TOKEN_BAD;
-        }
-        return tokenStatuses;
+  char *junkStr;
+  const char delim[2] = " ";
+  long checkTokens[3];
+  //0 for checkSpeed, 1 for checkDist, 2 for checkAng
+  char *curToken = strtok(userStr, delim); 
+  for (int i = 0; i < 3; i++)
+  {
+    checkTokens[i] = strtol(curToken, &junkStr, 10);
+    if (i == 0) {
+      if (checkTokens[i] < 0 || checkTokens[i] > 100)
+      {
+        tokenStatuses[i] = SPEED_TOKEN_BAD;
+      }
+      else {
+        tokenStatuses[i] = TOKEN_GOOD;
+      }
+    }
+    else if (i == 1) {
+      if (checkTokens[i] < DIST_MIN || checkTokens[i] > DIST_MAX) {
+         tokenStatuses[i] = DIST_TOKEN_BAD; 
+      }
+      else {
+        tokenStatuses[i] = TOKEN_GOOD;
+      }
+    }
+    else if (i == 2) {
+      if (checkTokens[i] < 0 || checkTokens[i] > 360) {
+        tokenStatuses[i] = ANG_TOKEN_BAD;
+      }
+      else {
+        tokenStatuses[i] = TOKEN_GOOD;
+      }
+    }
+    
+    curToken = strtok(NULL, delim);
+  }
+  char checkDir = *curToken;
+  if (checkDir != 'w' || checkDir != 'a' || checkDir != 's' || checkDir != 'd')
+  {
+    tokenStatuses[3] = DIR_TOKEN_BAD;
+  }
 }
-				
+
 void handlePacket(TPacket *packet) {
   switch (packet->packetType) {
     case PACKET_TYPE_COMMAND:
@@ -203,21 +225,22 @@ void handleCommand(TPacket *command) {
       sendOK();
       clearOneCounter(command->params[0]);
       break;
-//Speed config is meant for auto
+    //Speed config is meant for auto
     case COMMAND_SPEED_CONFIG:
       sendOK();
-      TTokenType tokenError = checkSpeedToken(command->data);
-      if (tokenError)
+      char *junkChar;
+      if (checkSpeedToken(command->data))
       {
-	      sendBadToken(tokenError);
-	      break;
+        sendBadToken(checkSpeedToken(command->data));
+        break;
       }
       speed = strtof(command->data, &junkChar);
       break;
     case COMMAND_MANUAL:
       sendOK();
+      checkTokens(command->data);
       processTokens(command->data);
-      manualMove(speed,dist,dir);
+      manualMove(speed, dist, ang, dir);
       break;
 
     default:
@@ -257,10 +280,11 @@ void loop() {
   TPacket recvPacket; // This holds commands from the Pi
   TResult result = readPacket(&recvPacket);
 
-  if (result == PACKET_OK) 
+  if (result == PACKET_OK)
     handlePacket(&recvPacket);
-  else if (result == PACKET_BAD) 
+  else if (result == PACKET_BAD)
     sendBadPacket();
-  else if (result == PACKET_CHECKSUM_BAD) 
+  else if (result == PACKET_CHECKSUM_BAD)
     sendBadChecksum();
+  tokenStatuses[3] = {UNCHECKED_TOKEN};
 }

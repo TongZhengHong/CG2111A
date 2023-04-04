@@ -23,9 +23,11 @@
   RIGHT = 4
 } TDirection;*/
 
-const float PRESET_SPEED = 60 
-const float PRESET_DIST = 5
-const char PRESET_DIR = 'f' 
+const float PRESET_SPEED = 60; 
+const float PRESET_DIST = 5;
+const char PRESET_DIR = 'f'; 
+const char DIST_MIN = 5;
+const char DIST_MAX = 15;
 // Packet types
 typedef enum
 {
@@ -45,7 +47,7 @@ typedef enum
   RESP_BAD_CHECKSUM = 3,
   RESP_BAD_COMMAND = 4,
   RESP_BAD_RESPONSE = 5,
-  RESP_BAD_TOKEN = 6;
+  RESP_BAD_TOKEN = 6,
 } TResponseType;
 
 typedef enum
@@ -53,7 +55,9 @@ typedef enum
 	TOKEN_GOOD = 0,
 	SPEED_TOKEN_BAD = 1,
 	DIST_TOKEN_BAD = 2,
-	DIR_TOKEN_BAD = 3
+	ANG_TOKEN_BAD = 3,
+  DIR_TOKEN_BAD = 4,
+  UNCHECKED_TOKEN = 5,
 } TTokenType;
 // Commands
 // For direction commands, param[0] = distance in cm to move
@@ -71,4 +75,3 @@ typedef enum
   COMMAND_MANUAL = 8,
 } TCommandType;
 #endif
-
