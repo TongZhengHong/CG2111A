@@ -54,7 +54,8 @@ typedef enum
   RESP_BAD_PACKET = 2,
   RESP_BAD_CHECKSUM = 3,
   RESP_BAD_COMMAND = 4,
-  RESP_BAD_RESPONSE = 5 
+  RESP_BAD_RESPONSE = 5,
+  RESP_COLOR = 6 
 } TResponseType;
 
 
@@ -73,7 +74,7 @@ typedef enum
   COMMAND_SPEED_SLOW = 7,
   COMMAND_SPEED_MID = 8,
   COMMAND_SPEED_FAST = 9,
-  COMMAND_MANUAL = 10
+  COMMAND_MANUAL = 10,
+  COMMAND_COLOR = 11
 } TCommandType;
 #endif
-

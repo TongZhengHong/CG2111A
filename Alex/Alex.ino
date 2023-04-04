@@ -173,6 +173,11 @@ void handleCommand(TPacket *command) {
       }
       break;
 
+    case COMMAND_COLOR:
+      sendOK();
+      sendColor();
+      break;
+
     default:
       sendBadCommand();
   }
