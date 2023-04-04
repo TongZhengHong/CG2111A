@@ -28,22 +28,22 @@ void startMotors() { // Start PWM for motors
   TCCR2B = B00000011;
 }
 
-void rightMotorForward() {
+void leftMotorForward() {
   TCCR1A = B00100001; // Enable waveform on OC1B pin
   TCCR2A = B00000001; // Disable waveform on OC2A pin
 }
 
-void rightMotorReverse() {
+void leftMotorReverse() {
   TCCR1A = B00000001; // Disable waveform on OC1B pin
   TCCR2A = B10000001; // Enable waveform on OC2A pin
 }
 
-void leftMotorForward() {
+void rightMotorForward() {
   // Enable OC0A pin, Disable OC0B pin
   TCCR0A = B10000001; 
 }
 
-void leftMotorReverse() {
+void rightMotorReverse() {
   // Disable OC0A pin, Enable OC0B pin
   TCCR0A = B00100001; 
 }
@@ -56,15 +56,18 @@ int pwmVal(float percent) {
   if (percent > 100.0)
     percent = 100.0;
 
-  // Left motor duty cycle
-  OCR0A = (int) ((percent / 100.0) * 255.0);
-  OCR0B = (int) ((percent / 100.0) * 255.0);
-
-  // Right motor duty cycle
-  OCR1B = (int) ((percent / 100.0) * 255.0);
-  OCR2A = (int) ((percent / 100.0) * 255.0);
+  int value = (int) ((percent / 100.0) * 255.0);
   
-  return (int) ((percent / 100.0) * 255.0);
+  // Right motor duty cycle
+  const int RIGHT_MOTOR_OFFSET = 12;
+  OCR0A = (dir == FORWARD) ? value - RIGHT_MOTOR_OFFSET : value;
+  OCR0B = (dir == FORWARD) ? value - RIGHT_MOTOR_OFFSET : value;
+
+  // Left motor duty cycle
+  OCR1B = value;
+  OCR2A = value;
+  
+  return value;
 }
 
 
@@ -107,8 +110,8 @@ void left() { // float ang, float speed
   unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
   targetTurnTicks = leftReverseTicks + deltaTicks;
 
-  leftMotorForward();
-  rightMotorReverse();
+  leftMotorReverse();
+  rightMotorForward();
 
 //  analogWrite(LR, val);
 //  analogWrite(RF, val);
@@ -124,8 +127,8 @@ void right() { // float ang, float speed
   unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
   targetTurnTicks = rightReverseTicks + deltaTicks;
 
-  leftMotorReverse();
-  rightMotorForward();
+  leftMotorForward();
+  rightMotorReverse();
   
 //  analogWrite(RR, val);
 //  analogWrite(LF, val);

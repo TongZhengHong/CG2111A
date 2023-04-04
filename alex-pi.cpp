@@ -267,6 +267,7 @@ void sendCommand(char command, bool manual) {
 			break;
 			
 		default:
+			send_status = false; // Set status back to idle
 			printf("Bad command\n");
 	}
 }
@@ -304,8 +305,8 @@ int main() {
 		
 		manual = ch == MANUAL ? !manual : manual; // Only toggle when 'm' clicked
 		if (!send_status) {
-			sendCommand(ch, manual);
 			send_status = true;
+			sendCommand(ch, manual);
 		}
 	}
 
