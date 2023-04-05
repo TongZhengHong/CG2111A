@@ -404,7 +404,7 @@ int main()
 
 	printf("\nToggle Mode = M, Speed config = 1, wasd for movement, f to stop ALEX, e = get stats, r = clear stats, q = quit\n");
 	printf("\nRange of inputs in manual mode: Speed [0,100] , Distance [0,10], Angle [0,360], Direction [w,a,s,d]\n");
-	printf("Format:PWM(percent) Dist(cm) Direction(wasd)\n");
+	printf("Format:PWM(percent) Dist(cm) Angle(deg) Direction(wasd)\n");
 
 	char userStr[MAX_STR_LEN];
 	
