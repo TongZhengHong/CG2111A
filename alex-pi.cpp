@@ -19,7 +19,7 @@
 int exitFlag=0;
 int manFlag = 0;
 char ch;
-TTokenType tokenStatuses[3] = {SPEED_TOKEN_BAD};
+TTokenType tokenStatuses[4] = {UNCHECKED_TOKEN};
 
 sem_t _xmitSema;
 
@@ -171,7 +171,7 @@ void *receiveThread(void *p) {
 	}
 }
 
-void flushInput() {
+/*void flushInput() {
 	char c;
 
 	while((c = getchar()) != '\n' && c != EOF);
@@ -182,7 +182,7 @@ void getParams(TPacket *commandPacket) {
 	printf("E.g. 50 75 means go at 50 cm at 75%% power for forward/backward, or 50 degrees left or right turn at 75%%  power\n");
 	scanf("%d %d", &commandPacket->params[0], &commandPacket->params[1]);
 	flushInput();
-}
+}*/
 
 TTokenType checkSpeedToken(char *userStr)
 {
@@ -204,6 +204,7 @@ void checkTokens(char *userStr)
 	int tokenNo = 1;
 	long checkSpeed = strtol(curTok, &junkStr, 10);
 	long checkDist;
+	long checkAng;
 	char checkDir;
 	//iterate through the last two tokens
 	curTok = strtok(NULL,delim);
@@ -215,8 +216,13 @@ void checkTokens(char *userStr)
 		}
 		else if (tokenNo == 2)
 		{
+			checkAng = strtol(curTok, &junkStr, 10);
+		}
+		else if (tokenNo == 3)
+		{
 			checkDir = curTok[0];
 		}
+
 		tokenNo++;
 		curTok = strtok(NULL,delim);
 	}
@@ -234,12 +240,20 @@ void checkTokens(char *userStr)
 	else {
 		tokenStatuses[1] = TOKEN_GOOD;
 	}
-	if (!(checkDir == 'w' || checkDir == 'a' || checkDir == 's' || checkDir == 'd'))
+	if (checkAng < 0 || checkAng > 360)
 	{
-		tokenStatuses[2] = DIR_TOKEN_BAD;
-	}	
+		tokenStatuses[2] = ANG_TOKEN_BAD;
+	}
 	else {
 		tokenStatuses[2] = TOKEN_GOOD;
+	}
+
+	if (!(checkDir == 'w' || checkDir == 'a' || checkDir == 's' || checkDir == 'd'))
+	{
+		tokenStatuses[3] = DIR_TOKEN_BAD;
+	}	
+	else {
+		tokenStatuses[3] = TOKEN_GOOD;
 	}
 }
 
@@ -312,7 +326,6 @@ void sendCommand(char* command) {
 			case SPEED_CONFIG: {
 						   printf("Enter Desired Preset Speed: ");
 						   char userStr[MAX_STR_LEN];
-						   char *junkStr;
 						   fgets(userStr,MAX_STR_LEN,stdin);
 						   //check token
 						   TTokenType tokenError = checkSpeedToken(userStr);
@@ -347,7 +360,7 @@ void sendCommand(char* command) {
 	{
 		int badTokens = 0;
 		checkTokens(command);
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 4; i++)
 		{
 			if (tokenStatuses[i])
 			{
@@ -390,7 +403,7 @@ int main()
 	sendPacket(&helloPacket);
 
 	printf("\nToggle Mode = M, Speed config = 1, wasd for movement, f to stop ALEX, e = get stats, r = clear stats, q = quit\n");
-	printf("\nRange of inputs in manual mode: Speed [0,100] , Distance [0,10], Direction [w,a,s,d]\n");
+	printf("\nRange of inputs in manual mode: Speed [0,100] , Distance [0,10], Angle [0,360], Direction [w,a,s,d]\n");
 	printf("Format:PWM(percent) Dist(cm) Direction(wasd)\n");
 
 	char userStr[MAX_STR_LEN];
@@ -408,6 +421,10 @@ int main()
 		{
 			fgets(userStr,MAX_STR_LEN,stdin);
 			sendCommand(userStr);
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			tokenStatuses[i] = UNCHECKED_TOKEN;
 		}
 	}
 

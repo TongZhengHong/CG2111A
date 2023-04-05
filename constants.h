@@ -36,7 +36,9 @@ typedef enum
 	TOKEN_GOOD = 0,
 	SPEED_TOKEN_BAD = 1,
 	DIST_TOKEN_BAD = 2,
-	DIR_TOKEN_BAD = 3
+	ANG_TOKEN_BAD = 3,
+	DIR_TOKEN_BAD = 4,
+	UNCHECKED_TOKEN = 5
 } TTokenType;
 // Response types. This goes into the command field
 typedef enum
