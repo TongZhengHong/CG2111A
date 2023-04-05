@@ -340,7 +340,7 @@ void sendCommand(char* command) {
 						   commandPacket.command = COMMAND_SPEED_CONFIG;
 						   for (int i = 0; i < strlen(userStr) - 1; i++)
 						   {
-							   commandPacket.data[0] = userStr[0];
+							   commandPacket.data[i] = userStr[i];
 						   }
 						   sendPacket(&commandPacket);
 						   break;
@@ -416,6 +416,7 @@ int main()
 			ch = getch();
 			ch = tolower(ch);
 			sendCommand(&ch);
+			
 		}
 		else 
 		{

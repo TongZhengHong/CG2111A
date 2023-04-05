@@ -83,6 +83,10 @@ void sendBadToken(TTokenType tokenErrMsg) {
    sendMessage("Missing Parameters: Please follow the format (speed dist dir)\n");
  }
 }
+void sendTokenData(float speed, float dist, long ang, char dir)
+{
+	sendMessage("Parameters received by Arduino: %f %f %ld %c \n",speed,dist,ang,dir);
+}
 
 
 void sendBadChecksum() {
