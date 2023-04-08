@@ -3,13 +3,6 @@
 */
 
 void sendStatus() {
-  // Implement code to send back a packet containing key
-  // information like leftTicks, rightTicks, leftRevs, rightRevs
-  // forwardDist and reverseDist
-  // Use the params array to store this information, and set the
-  // packetType and command files accordingly, then use sendResponse
-  // to send out the packet. See sendMessage on how to use sendResponse.
-  //
   TPacket statusPacket;
   statusPacket.packetType = PACKET_TYPE_RESPONSE;
   statusPacket.command = RESP_STATUS;
@@ -30,10 +23,8 @@ void sendStatus() {
   sendResponse(&statusPacket);
 }
 
+// Sends text messages back to the Pi
 void sendMessage(const char *message) {
-  // Sends text messages back to the Pi. Useful
-  // for debugging.
-
   TPacket messagePacket;
   messagePacket.packetType = PACKET_TYPE_MESSAGE;
   strncpy(messagePacket.data, message, MAX_STR_LEN);

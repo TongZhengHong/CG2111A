@@ -1,4 +1,3 @@
-
 void setupColor() {
   pinMode(S0, OUTPUT);
   pinMode(S1, OUTPUT);
@@ -19,41 +18,42 @@ int avgFREQ() {
   for (int i = 0; i < 5; i++) {
     reading = pulseIn(sensorOut, LOW);
     total += reading;
-    delay(20);
+    delay(colorAverageDelay);
   }
   
   return total / 5;
 }
 
 // Find the color of the paper
-int findColor() { 
+void findColor() { 
   // Setting RED (R) filtered photodiodes to be read
   digitalWrite(S2, LOW);
   digitalWrite(S3, LOW);
-  delay(100);
+  delay(colorSensorDelay);
 
   // Reading the output frequency for red
   redFreq = avgFREQ();
-  redColour = map(redFreq, 180, 410, 255, 0);
-  delay(100);
+  delay(colorSensorDelay);
 
   // Setting GREEN (G) filtered photodiodes to be read
   digitalWrite(S2, HIGH);
   digitalWrite(S3, HIGH);
-  delay(100);
+  delay(colorSensorDelay);
 
   // Reading the output frequency for green
   greenFreq = avgFREQ();
-  greenColour = map(greenFreq, 282, 470, 255, 0);
-  delay(100);
-
-  return redColor > greenColor; // RED = 0, GREEN = 1
+  delay(colorSensorDelay);
 }
 
-void sendColor() {                       //send color packet
+void sendColor(uint32_t dist) {                 
   TPacket colorPacket;
   colorPacket.packetType = PACKET_TYPE_RESPONSE;
   colorPacket.command = RESP_COLOR;
-  colorPacket.params[0] = findColor();
+  
+  colorPacket.params[0] = redFreq;
+  colorPacket.params[1] = greenFreq;
+  colorPacket.params[2] = dist;
+  
   sendResponse(&colorPacket);  
 }
+

@@ -1,5 +1,5 @@
-//#include "Arduino.h" 
-//#include <avr/io.h> 
+//#include "Arduino.h"
+//#include <avr/io.h>
 
 #include <serialize.h>
 #include <stdarg.h>
@@ -8,14 +8,12 @@
 #include "constants.h"
 
 bool MANUAL_MODE = false;
-
 volatile TDirection dir = STOP;
-volatile int speed = SPEED_FAST;
 
-volatile int distance = DIST_MID;
+volatile float distance = DIST_MID;
 unsigned long targetDist;
 
-volatile int angle = ANG_MID;
+volatile float angle = ANG_MID;
 unsigned long targetTurnTicks;
 
 /*
@@ -42,7 +40,7 @@ unsigned long targetTurnTicks;
 #define RR                  11  // Right reverse pin
 
 /*
-      Alex's Colour Sensor
+      Alex's Colour Sensor variables
 */
 #define S1 8
 #define S0 9
@@ -50,13 +48,22 @@ unsigned long targetTurnTicks;
 #define S3 13
 #define sensorOut 4
 
-// Frequency read by the photodiodes
-int redFreq = 0;
-int greenFreq = 0;
+#define colorSensorDelay 50 // Milliseconds
+#define colorAverageDelay 20 // Milliseconds
 
-// Stores the red and green colour values
-int redColour = 0;
-int greenColour = 0;
+// Frequency read by photodiodes of color sensor
+unsigned long redFreq;
+unsigned long greenFreq;
+
+/*
+   Alex's Ultrasonic Distance variables
+*/
+
+#define trigPin A5
+#define echoPin A4
+
+#define SPEED_OF_SOUND 340 // m/s
+#define DIST_OFFSET 2 // cm
 
 /*
       Alex's State Variables
@@ -82,18 +89,17 @@ volatile unsigned long rightRevs;
 volatile unsigned long forwardDist;
 volatile unsigned long reverseDist;
 
-//unsigned long targetDist;
-//unsigned long targetTurnTicks;
-
 void setup() {
   cli();
   setupEINT();
   setupSerial();
   startSerial();
-  
+
   setupMotors();
   startMotors();
+  
   setupColor();
+  setupUltrasonic();
 
   enablePullups();
   initializeState();
@@ -104,78 +110,93 @@ void handleCommand(TPacket *command) {
   switch (command->command) {
     // For movement commands, param[0] = distance, param[1] = speed.
     case COMMAND_FORWARD:
-      sendOK();
-      if (MANUAL_MODE) 
+      if (MANUAL_MODE)
         distance = (float) command->params[1];
       forward(); //(float) command->params[0], (float) command->params[1]
+
+      sendDistance();
+      sendOK();
       break;
 
     case COMMAND_REVERSE:
-      sendOK();
-      if (MANUAL_MODE) 
+      if (MANUAL_MODE)
         distance = (float) command->params[1];
       reverse();
+
+      sendDistance();
+      sendOK();
       break;
 
     case COMMAND_TURN_LEFT:
-      sendOK();
-      if (MANUAL_MODE) 
+      if (MANUAL_MODE)
         angle = (float) command->params[1];
       left();
+      
+      sendDistance();
+      sendOK();
       break;
 
     case COMMAND_TURN_RIGHT:
-      sendOK();
-      if (MANUAL_MODE) 
+      if (MANUAL_MODE)
         angle = (float) command->params[1];
       right();
+
+      sendDistance();
+      sendOK();
       break;
 
     case COMMAND_STOP:
-      sendOK();
       stop();
+      sendDistance();
+      sendOK();
       break;
 
     case COMMAND_SPEED_SLOW:
-      sendOK();
       distance = DIST_SHORT;
       angle = ANG_SHORT;
+      sendOK();
       break;
 
     case COMMAND_SPEED_MID:
-      sendOK();
       distance = DIST_MID;
       angle = ANG_MID;
+      sendOK();
       break;
 
     case COMMAND_SPEED_FAST:
-      sendOK();
       distance = DIST_FAR;
       angle = ANG_FAR;
+      sendOK();
       break;
 
     case COMMAND_GET_STATS:
-      sendOK();
       sendStatus();
+      sendOK();
       break;
 
     case COMMAND_CLEAR_STATS:
-      sendOK();
       clearOneCounter(command->params[0]);
+      sendOK();
       break;
 
     case COMMAND_MANUAL:
-      sendOK();
       MANUAL_MODE = !MANUAL_MODE; // Toggle manual mode
-      if (!MANUAL_MODE) { //Reset distance and angle when toggle back to auto mode
+      if (!MANUAL_MODE) { // Reset distance and angle when toggle back to auto mode
         distance = DIST_MID;
         angle = ANG_MID;
       }
+      sendOK();
       break;
 
     case COMMAND_COLOR:
+      findColor();
+      sendColor(getUltrasonicDistance());
       sendOK();
-      sendColor();
+      break;
+
+    case COMMAND_DIST:
+      sendDistance();
+      sendOK();
       break;
 
     default:
@@ -204,41 +225,35 @@ void handlePacket(TPacket *packet) {
 }
 
 void loop() {
-  // Uncomment the code below for Step 2 of Activity 3 in Week 8 Studio 2
-
-  //  forward(0, 30);
-  //  float pi = 3.141592654;
-  //  dbprintf("PI is %3.2f\n", pi);
-
-    if (dir == FORWARD) {
-      if (forwardDist >= targetDist) {
-        targetDist = 0;
-        stop();
-      }
-    } else if (dir == REVERSE) {
-      if (reverseDist >= targetDist) {
-        targetDist = 0;
-        stop();
-      }
-    } else if (dir == RIGHT) {
-      if (rightReverseTicks >= targetTurnTicks) {
-        targetTurnTicks = 0;
-        stop();
-      }
-    } else if (dir == LEFT) {
-      if (leftReverseTicks >= targetTurnTicks) {
-        targetTurnTicks = 0;
-        stop();
-      }
+  if (dir == FORWARD) {
+    if (forwardDist >= targetDist) {
+      targetDist = 0;
+      stop();
     }
+  } else if (dir == REVERSE) {
+    if (reverseDist >= targetDist) {
+      targetDist = 0;
+      stop();
+    }
+  } else if (dir == RIGHT) {
+    if (rightReverseTicks >= targetTurnTicks) {
+      targetTurnTicks = 0;
+      stop();
+    }
+  } else if (dir == LEFT) {
+    if (leftReverseTicks >= targetTurnTicks) {
+      targetTurnTicks = 0;
+      stop();
+    }
+  }
 
   TPacket recvPacket; // This holds commands from the Pi
   TResult result = readPacket(&recvPacket);
 
-  if (result == PACKET_OK) 
+  if (result == PACKET_OK)
     handlePacket(&recvPacket);
-  else if (result == PACKET_BAD) 
+  else if (result == PACKET_BAD)
     sendBadPacket();
-  else if (result == PACKET_CHECKSUM_BAD) 
+  else if (result == PACKET_CHECKSUM_BAD)
     sendBadChecksum();
 }

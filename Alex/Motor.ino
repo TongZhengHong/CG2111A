@@ -28,119 +28,94 @@ void startMotors() { // Start PWM for motors
   TCCR2B = B00000011;
 }
 
-void leftMotorForward() {
+void rightMotorReverse() {
   TCCR1A = B00100001; // Enable waveform on OC1B pin
   TCCR2A = B00000001; // Disable waveform on OC2A pin
 }
 
-void leftMotorReverse() {
+void rightMotorForward() {
   TCCR1A = B00000001; // Disable waveform on OC1B pin
   TCCR2A = B10000001; // Enable waveform on OC2A pin
 }
 
-void rightMotorForward() {
+void leftMotorReverse() {
   // Enable OC0A pin, Disable OC0B pin
   TCCR0A = B10000001; 
 }
 
-void rightMotorReverse() {
+void leftMotorForward() {
   // Disable OC0A pin, Enable OC0B pin
   TCCR0A = B00100001; 
 }
 
-// Convert percentages to PWM values
-int pwmVal(float percent) {
-  if (percent < 0.0)
-    percent = 0;
+// Assign global motor speed to OCRxA/B
+void setMotorSpeed(float speed) {
+  if (speed < 0.0) speed = 0;
+  else if (speed > 100.0) speed = 100.0;
 
-  if (percent > 100.0)
-    percent = 100.0;
-
-  int value = (int) ((percent / 100.0) * 255.0);
+  int value = (int) ((speed / 100.0) * 255.0);
   
-  // Right motor duty cycle
-  const int RIGHT_MOTOR_OFFSET = 12;
-  OCR0A = (dir == FORWARD) ? value - RIGHT_MOTOR_OFFSET : value;
-  OCR0B = (dir == FORWARD) ? value - RIGHT_MOTOR_OFFSET : value;
+  // LEFT motor duty cycle
+  const int LEFT_MOTOR_OFFSET = 5;
+  OCR0A = value - LEFT_MOTOR_OFFSET;
+  OCR0B = value - LEFT_MOTOR_OFFSET;
 
-  // Left motor duty cycle
+  // RIGHT motor duty cycle
   OCR1B = value;
   OCR2A = value;
-  
-  return value;
 }
 
 
 void forward() { // float dist, float speed
   dir = FORWARD;
-  int val = pwmVal(speed);
+  setMotorSpeed(SPEED_FAST);
 
   targetDist = forwardDist + distance;
   
   leftMotorForward();
   rightMotorForward();
-
-//  analogWrite(LF, val);
-//  analogWrite(RF, val);
-//  analogWrite(LR, 0);
-//  analogWrite(RR, 0);
 }
 
 
 void reverse() { // float dist, float speed
   dir = REVERSE;
-  int val = pwmVal(speed);
+  setMotorSpeed(SPEED_FAST);
   
   targetDist = reverseDist + distance;
 
   leftMotorReverse();
   rightMotorReverse();
-
-//  analogWrite(LR, val);
-//  analogWrite(RR, val);
-//  analogWrite(LF, 0);
-//  analogWrite(RF, 0);
 }
 
 
 void left() { // float ang, float speed
   dir = LEFT;
-  int val = pwmVal(speed);
+  setMotorSpeed(SPEED_MID);
 
   unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
   targetTurnTicks = leftReverseTicks + deltaTicks;
 
   leftMotorReverse();
   rightMotorForward();
-
-//  analogWrite(LR, val);
-//  analogWrite(RF, val);
-//  analogWrite(LF, 0);
-//  analogWrite(RR, 0);
 }
 
 
 void right() { // float ang, float speed
   dir = RIGHT;
-  int val = pwmVal(speed); 
+  setMotorSpeed(SPEED_MID);
 
   unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
   targetTurnTicks = rightReverseTicks + deltaTicks;
 
   leftMotorForward();
   rightMotorReverse();
-  
-//  analogWrite(RR, val);
-//  analogWrite(LF, val);
-//  analogWrite(LR, 0);
-//  analogWrite(RF, 0);
 }
 
 
 void stop() {
   dir = STOP;
-  
   TCCR2A = B00000001; // Disable waveform on OC2A pin
   TCCR1A = B00000001; // Disable waveform on OC1B pin
   TCCR0A = B00000001; // Disable OC0A and OC0B pins
 }
+

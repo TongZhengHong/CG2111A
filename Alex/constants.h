@@ -7,25 +7,20 @@
  *  
  */
 
-// Motor speeds
-typedef enum {
-  SPEED_SLOW = 60,
-  SPEED_MID = 80,
-  SPEED_FAST = 100
-} TMotorSpeed;
+// Motor speed constants
+const float SPEED_SLOW = 60.0;
+const float SPEED_MID = 80.0;
+const float SPEED_FAST = 100.0;
 
-// Distances
-typedef enum {
-  DIST_SHORT = 2,
-  DIST_MID = 5,
-  DIST_FAR = 20
-} TDistances;
+// Distance constants
+const float DIST_SHORT = 2.0;
+const float DIST_MID = 5.0;
+const float DIST_FAR = 25.0;
 
-typedef enum {
-  ANG_SHORT = 5,
-  ANG_MID = 8,
-  ANG_FAR = 11
-} TAngles;
+// Angle constants
+const float ANG_SHORT = 2.0;
+const float ANG_MID = 5.0;
+const float ANG_FAR = 8.0;
 
 // Alex directions
 typedef enum {
@@ -55,7 +50,8 @@ typedef enum
   RESP_BAD_CHECKSUM = 3,
   RESP_BAD_COMMAND = 4,
   RESP_BAD_RESPONSE = 5,
-  RESP_COLOR = 6 
+  RESP_COLOR = 6,
+  RESP_DIST = 7
 } TResponseType;
 
 
@@ -75,6 +71,7 @@ typedef enum
   COMMAND_SPEED_MID = 8,
   COMMAND_SPEED_FAST = 9,
   COMMAND_MANUAL = 10,
-  COMMAND_COLOR = 11
+  COMMAND_COLOR = 11,
+  COMMAND_DIST = 12
 } TCommandType;
 #endif

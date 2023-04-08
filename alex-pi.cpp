@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
@@ -70,17 +71,53 @@ void handleStatus(TPacket *packet) {
 	printf("\n---------------------------------------\n\n");
 }
 
+void handleColor(TPacket *packet) {
+	uint32_t red = packet->params[0];
+	uint32_t green = packet->params[1];
+	uint32_t distance = packet->params[2];
+	
+	printf("\n --------- ALEX COLOR SENSOR --------- \n\n");
+	printf("Red frequency:\t\t%d\n", red);
+	printf("Green frequency:\t%d\n", green);
+	printf("Distance:\t\t%d cm\n", distance);
+	
+	// Determine color
+	const int COLOR_THRESHOLD = 10;
+	uint32_t diff = (red > green) ? red-green : green-red; // abs diff
+	uint32_t large = (red > green) ? red : green; // max
+	
+	float percentDiff = (float) diff / large * 100.0;
+	printf( "Percent diff:\t\t%0.2lf%\n", percentDiff);
+	if (percentDiff > COLOR_THRESHOLD) {
+		if (red < green) printf("RED!\n");
+		else printf("GREEN!\n");
+	} else printf("No color detected!\n");
+	printf("\n--------------------------------------\n\n");
+}
+
+void handleDistance(TPacket *packet) {
+	printf("Ultrasonic Distance:\t\t%d cm\n", packet->params[0]);
+}
+
 void handleResponse(TPacket *packet) {
 	// The response code is stored in command
 	switch(packet->command) {
 		case RESP_OK:
 			printf("Command OK\n");
 			send_status = false;
-		break;
+			break;
 
 		case RESP_STATUS:
 			handleStatus(packet);
-		break;
+			break;
+		
+		case RESP_COLOR:
+			handleColor(packet);
+			break;
+			
+		case RESP_DIST:
+			handleDistance(packet);
+			break;
 
 		default:
 			printf("Arduino is confused\n");
@@ -92,19 +129,19 @@ void handleErrorResponse(TPacket *packet) {
 	switch(packet->command) {
 		case RESP_BAD_PACKET:
 			printf("Arduino received bad magic number\n");
-		break;
+			break;
 
 		case RESP_BAD_CHECKSUM:
 			printf("Arduino received bad checksum\n");
-		break;
+			break;
 
 		case RESP_BAD_COMMAND:
 			printf("Arduino received bad command\n");
-		break;
+			break;
 
 		case RESP_BAD_RESPONSE:
 			printf("Arduino received unexpected response\n");
-		break;
+			break;
 
 		default:
 			printf("Arduino reports a weird error\n");
@@ -138,7 +175,6 @@ void handlePacket(TPacket *packet) {
 void sendPacket(TPacket *packet) {
 	char buffer[PACKET_SIZE];
 	int len = serialize(buffer, packet, sizeof(TPacket));
-
 	serialWrite(buffer, len);
 }
 
@@ -169,7 +205,6 @@ void *receiveThread(void *p) {
 
 void flushInput() {
 	char c;
-
 	while((c = getchar()) != '\n' && c != EOF);
 }
 
@@ -236,19 +271,19 @@ void sendCommand(char command, bool manual) {
 			break;
 			
 		case SPEED_ONE:
-			printf("SPEED SLOW\n");
+			printf("PARK MODE\n");
 			commandPacket.command = COMMAND_SPEED_SLOW;
 			sendPacket(&commandPacket);
 			break;
 			
 		case SPEED_TWO:
-			printf("SPEED MID\n");
+			printf("NORMAL MODE\n");
 			commandPacket.command = COMMAND_SPEED_MID;
 			sendPacket(&commandPacket);
 			break;
 			
 		case SPEED_THREE:
-			printf("SPEED FAST\n");
+			printf("HUMP MODE\n");
 			commandPacket.command = COMMAND_SPEED_FAST;
 			sendPacket(&commandPacket);
 			break;
@@ -263,6 +298,18 @@ void sendCommand(char command, bool manual) {
 			else printf("SET TO AUTO MODE\n");
 			
 			commandPacket.command = COMMAND_MANUAL;
+			sendPacket(&commandPacket);
+			break;
+			
+		case COLOR:
+			printf("GET COLOR\n");
+			commandPacket.command = COMMAND_COLOR;
+			sendPacket(&commandPacket);
+			break;
+			
+		case DISTANCE:
+			printf("GET DISTANCE\n");
+			commandPacket.command = COMMAND_DIST;
 			sendPacket(&commandPacket);
 			break;
 			
