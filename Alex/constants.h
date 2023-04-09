@@ -18,9 +18,9 @@ const float DIST_MID = 5.0;
 const float DIST_FAR = 25.0;
 
 // Angle constants
-const float ANG_SHORT = 2.0;
-const float ANG_MID = 5.0;
-const float ANG_FAR = 8.0;
+const float ANG_SHORT = 50.0;
+const float ANG_MID = 80.0;
+const float ANG_FAR = 300.0;
 
 // Alex directions
 typedef enum {

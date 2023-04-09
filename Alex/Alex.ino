@@ -13,8 +13,8 @@ volatile TDirection dir = STOP;
 volatile float distance = DIST_MID;
 unsigned long targetDist;
 
-volatile float angle = ANG_MID;
-unsigned long targetTurnTicks;
+volatile float angleDur = ANG_MID;
+unsigned long lastTurnTime;
 
 /*
    Alex's configuration constants
@@ -97,7 +97,7 @@ void setup() {
 
   setupMotors();
   startMotors();
-  
+
   setupColor();
   setupUltrasonic();
 
@@ -113,59 +113,46 @@ void handleCommand(TPacket *command) {
       if (MANUAL_MODE)
         distance = (float) command->params[1];
       forward(); //(float) command->params[0], (float) command->params[1]
-
-      sendDistance();
-      sendOK();
       break;
 
     case COMMAND_REVERSE:
       if (MANUAL_MODE)
         distance = (float) command->params[1];
       reverse();
-
-      sendDistance();
-      sendOK();
       break;
 
     case COMMAND_TURN_LEFT:
       if (MANUAL_MODE)
-        angle = (float) command->params[1];
+        angleDur = (float) command->params[1];
       left();
-      
-      sendDistance();
-      sendOK();
       break;
 
     case COMMAND_TURN_RIGHT:
       if (MANUAL_MODE)
-        angle = (float) command->params[1];
+        angleDur = (float) command->params[1];
       right();
-
-      sendDistance();
-      sendOK();
       break;
 
     case COMMAND_STOP:
       stop();
-      sendDistance();
-      sendOK();
+      sendDistance(); // OK packet in sendDistance
       break;
 
     case COMMAND_SPEED_SLOW:
       distance = DIST_SHORT;
-      angle = ANG_SHORT;
+      angleDur = ANG_SHORT;
       sendOK();
       break;
 
     case COMMAND_SPEED_MID:
       distance = DIST_MID;
-      angle = ANG_MID;
+      angleDur = ANG_MID;
       sendOK();
       break;
 
     case COMMAND_SPEED_FAST:
       distance = DIST_FAR;
-      angle = ANG_FAR;
+      angleDur = ANG_FAR;
       sendOK();
       break;
 
@@ -183,7 +170,7 @@ void handleCommand(TPacket *command) {
       MANUAL_MODE = !MANUAL_MODE; // Toggle manual mode
       if (!MANUAL_MODE) { // Reset distance and angle when toggle back to auto mode
         distance = DIST_MID;
-        angle = ANG_MID;
+        angleDur = ANG_MID;
       }
       sendOK();
       break;
@@ -195,8 +182,7 @@ void handleCommand(TPacket *command) {
       break;
 
     case COMMAND_DIST:
-      sendDistance();
-      sendOK();
+      sendDistance(); // OK packet in sendDistance
       break;
 
     default:
@@ -224,26 +210,27 @@ void handlePacket(TPacket *packet) {
   }
 }
 
+#define STOP_DELAY 20000 // Milliseconds
 void loop() {
   if (dir == FORWARD) {
     if (forwardDist >= targetDist) {
       targetDist = 0;
       stop();
+      delay(STOP_DELAY);
+      sendDistance();
     }
   } else if (dir == REVERSE) {
     if (reverseDist >= targetDist) {
       targetDist = 0;
       stop();
+      delay(STOP_DELAY);
+      sendDistance();
     }
-  } else if (dir == RIGHT) {
-    if (rightReverseTicks >= targetTurnTicks) {
-      targetTurnTicks = 0;
+  } else if (dir == RIGHT or dir == LEFT) {
+    if (millis() - lastTurnTime >= angleDur) {
       stop();
-    }
-  } else if (dir == LEFT) {
-    if (leftReverseTicks >= targetTurnTicks) {
-      targetTurnTicks = 0;
-      stop();
+      delay(STOP_DELAY);
+      sendDistance();
     }
   }
 

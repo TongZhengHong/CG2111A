@@ -26,6 +26,8 @@ void sendDistance() {
   distancePacket.packetType = PACKET_TYPE_RESPONSE;
   distancePacket.command = RESP_DIST;
   distancePacket.params[0] = ultrasonicDist;
-  sendResponse(&distancePacket);  
+  sendResponse(&distancePacket);
+
+  sendOK();
 }
 

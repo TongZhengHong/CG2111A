@@ -92,8 +92,10 @@ void left() { // float ang, float speed
   dir = LEFT;
   setMotorSpeed(SPEED_MID);
 
-  unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
-  targetTurnTicks = leftReverseTicks + deltaTicks;
+//  unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
+//  targetTurnTicks = leftReverseTicks + angle;
+//  dbprintf("Left ticks: %d\n", deltaTicks);
+  lastTurnTime = millis();
 
   leftMotorReverse();
   rightMotorForward();
@@ -104,8 +106,10 @@ void right() { // float ang, float speed
   dir = RIGHT;
   setMotorSpeed(SPEED_MID);
 
-  unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
-  targetTurnTicks = rightReverseTicks + deltaTicks;
+//  unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
+//  targetTurnTicks = rightReverseTicks + angle;
+//  dbprintf("Right ticks: %d\n", deltaTicks);
+  lastTurnTime = millis();
 
   leftMotorForward();
   rightMotorReverse();

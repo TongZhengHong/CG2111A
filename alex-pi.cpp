@@ -83,20 +83,26 @@ void handleColor(TPacket *packet) {
 	
 	// Determine color
 	const int COLOR_THRESHOLD = 10;
+	const int DIST_THRESHOLD = 10;
+	
 	uint32_t diff = (red > green) ? red-green : green-red; // abs diff
 	uint32_t large = (red > green) ? red : green; // max
 	
 	float percentDiff = (float) diff / large * 100.0;
 	printf( "Percent diff:\t\t%0.2lf%\n", percentDiff);
-	if (percentDiff > COLOR_THRESHOLD) {
-		if (red < green) printf("RED!\n");
-		else printf("GREEN!\n");
-	} else printf("No color detected!\n");
+	if (percentDiff >= COLOR_THRESHOLD and distance <= DIST_THRESHOLD) {
+		if (red < green) printf("\nRED!\n");
+		else printf("\nGREEN!\n");
+	} else printf("\nNo color detected!\n");
 	printf("\n--------------------------------------\n\n");
 }
 
 void handleDistance(TPacket *packet) {
-	printf("Ultrasonic Distance:\t\t%d cm\n", packet->params[0]);
+	uint32_t distance = packet->params[0];
+	printf("Ultrasonic Distance:\t\t%d cm\n", distance);
+	
+	const int DIST_THRESHOLD = 25;
+	if (distance < DIST_THRESHOLD) printf("WALL NEARBY! SLOW DOWN!\n");
 }
 
 void handleResponse(TPacket *packet) {
