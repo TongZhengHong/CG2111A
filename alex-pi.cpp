@@ -74,11 +74,13 @@ void handleStatus(TPacket *packet) {
 void handleColor(TPacket *packet) {
 	uint32_t red = packet->params[0];
 	uint32_t green = packet->params[1];
-	uint32_t distance = packet->params[2];
+	uint32_t blue = packet->params[2];
+	uint32_t distance = packet->params[3];
 	
 	printf("\n --------- ALEX COLOR SENSOR --------- \n\n");
-	printf("Red frequency:\t\t%d\n", red);
-	printf("Green frequency:\t%d\n", green);
+	printf("Red (R) frequency:\t%d\n", red);
+	printf("Green (G) frequency:\t%d\n", green);
+	printf("Blue (B) frequency:\t%d\n", blue);
 	printf("Distance:\t\t%d cm\n", distance);
 	
 	// Determine color

@@ -31,7 +31,7 @@ void findColor() {
   digitalWrite(S3, LOW);
   delay(colorSensorDelay);
 
-  // Reading the output frequency for red
+  // Reading the output frequency for RED
   redFreq = avgFREQ();
   delay(colorSensorDelay);
 
@@ -40,19 +40,29 @@ void findColor() {
   digitalWrite(S3, HIGH);
   delay(colorSensorDelay);
 
-  // Reading the output frequency for green
+  // Reading the output frequency for GREEN
   greenFreq = avgFREQ();
+  delay(colorSensorDelay);
+
+  // Setting BLUE (B) filtered photodiodes to be read
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, HIGH);
+  delay(colorSensorDelay);
+
+  // Reading the output frequency for BLUE
+  blueFreq = avgFREQ();
   delay(colorSensorDelay);
 }
 
-void sendColor(uint32_t dist) {                 
+void sendColor(uint32_t dist) {
   TPacket colorPacket;
   colorPacket.packetType = PACKET_TYPE_RESPONSE;
   colorPacket.command = RESP_COLOR;
   
   colorPacket.params[0] = redFreq;
   colorPacket.params[1] = greenFreq;
-  colorPacket.params[2] = dist;
+  colorPacket.params[2] = blueFreq;
+  colorPacket.params[3] = dist;
   
   sendResponse(&colorPacket);  
 }

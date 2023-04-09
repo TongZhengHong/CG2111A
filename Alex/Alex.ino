@@ -54,6 +54,7 @@ unsigned long lastTurnTime;
 // Frequency read by photodiodes of color sensor
 unsigned long redFreq;
 unsigned long greenFreq;
+unsigned long blueFreq;
 
 /*
    Alex's Ultrasonic Distance variables
