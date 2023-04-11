@@ -90,7 +90,7 @@ void reverse() { // float dist, float speed
 
 void left() { // float ang, float speed
   dir = LEFT;
-  setMotorSpeed(SPEED_MID);
+  setMotorSpeed(SPEED_FAST);
 
 //  unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
 //  targetTurnTicks = leftReverseTicks + angle;
@@ -104,7 +104,7 @@ void left() { // float ang, float speed
 
 void right() { // float ang, float speed
   dir = RIGHT;
-  setMotorSpeed(SPEED_MID);
+  setMotorSpeed(SPEED_FAST);
 
 //  unsigned long deltaTicks = (angle / 360.0) * (ALEX_CIRC / WHEEL_CIRC) * COUNTS_PER_REV;
 //  targetTurnTicks = rightReverseTicks + angle;

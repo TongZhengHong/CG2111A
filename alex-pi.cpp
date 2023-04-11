@@ -87,12 +87,12 @@ void handleColor(TPacket *packet) {
 	printf("Red (R) frequency:\t%d\n", red);
 	printf("Green (G) frequency:\t%d\n", green);
 	printf("Blue (B) frequency:\t%d\n", blue);
-	printf("Distance:\t\t%d cm\n", distance);
+	printf("Distance:\t\t%d cm\n\n", distance);
 	
 	// Determine color
 	const int COLOR_THRESHOLD = 10;
-	const int RED_THRESHOLD = 700;
-	const int GREEN_THRESHOLD = 10;
+	const int RED_THRESHOLD = 1100;
+	const int GREEN_THRESHOLD = 25;
 	const int DIST_THRESHOLD = 10;
 	
 	float redGreenDiff = getPercentDiff(red, green);
