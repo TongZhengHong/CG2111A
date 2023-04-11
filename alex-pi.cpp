@@ -237,7 +237,21 @@ void getParams(TPacket *commandPacket) {
 	flushInput();
 }
 
-void sendCommand(char command, bool manual) {
+void printCurrentMode(int mode) {
+	switch (mode) {
+		case COMMAND_PARK_MODE:
+			printf("Currently in PARK MODE\n");
+			break;
+		case COMMAND_NORMAL_MODE:
+			printf("Currently in NORMAL MODE\n");
+			break;
+		case COMMAND_HUMP_MODE:
+			printf("Currently in HUMP MODE\n");
+			break;
+	}
+}
+
+void sendCommand(char command, bool manual, int* mode) {
 	TPacket commandPacket;
 
 	commandPacket.packetType = PACKET_TYPE_COMMAND;
@@ -247,6 +261,7 @@ void sendCommand(char command, bool manual) {
 	switch(command) {
 		case FORWARD:
 			printf("FORWARD\n");
+			printCurrentMode(*mode);
 			if (manual) getParams(&commandPacket);
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
@@ -254,6 +269,7 @@ void sendCommand(char command, bool manual) {
 
 		case REVERSE:
 			printf("REVERSE\n");
+			printCurrentMode(*mode);
 			if (manual) getParams(&commandPacket);
 			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
@@ -261,6 +277,7 @@ void sendCommand(char command, bool manual) {
 
 		case LEFT:
 			printf("LEFT\n");
+			printCurrentMode(*mode);
 			if (manual) getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
@@ -268,6 +285,7 @@ void sendCommand(char command, bool manual) {
 
 		case RIGHT:
 			printf("RIGHT\n");
+			printCurrentMode(*mode);
 			if (manual) getParams(&commandPacket);
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
@@ -275,6 +293,7 @@ void sendCommand(char command, bool manual) {
 
 		case STOP:
 			printf("STOP\n");
+			printCurrentMode(*mode);
 			commandPacket.command = COMMAND_STOP;
 			sendPacket(&commandPacket);
 			break;
@@ -288,25 +307,29 @@ void sendCommand(char command, bool manual) {
 
 		case STATS:
 			printf("STATS\n");
+			printCurrentMode(*mode);
 			commandPacket.command = COMMAND_GET_STATS;
 			sendPacket(&commandPacket);
 			break;
 			
-		case SPEED_ONE:
-			printf("PARK MODE\n");
-			commandPacket.command = COMMAND_SPEED_SLOW;
+		case PARK_MODE:
+			printf("Set PARK MODE\n");
+			*mode = COMMAND_PARK_MODE;
+			commandPacket.command = COMMAND_PARK_MODE;
 			sendPacket(&commandPacket);
 			break;
 			
-		case SPEED_TWO:
-			printf("NORMAL MODE\n");
-			commandPacket.command = COMMAND_SPEED_MID;
+		case NORMAL_MODE:
+			printf("Set NORMAL MODE\n");
+			*mode = COMMAND_NORMAL_MODE;
+			commandPacket.command = COMMAND_NORMAL_MODE;
 			sendPacket(&commandPacket);
 			break;
 			
-		case SPEED_THREE:
-			printf("HUMP MODE\n");
-			commandPacket.command = COMMAND_SPEED_FAST;
+		case HUMP_MODE:
+			printf("Set HUMP MODE\n");
+			*mode = COMMAND_HUMP_MODE;
+			commandPacket.command = COMMAND_HUMP_MODE;
 			sendPacket(&commandPacket);
 			break;
 
@@ -325,12 +348,14 @@ void sendCommand(char command, bool manual) {
 			
 		case COLOR:
 			printf("GET COLOR\n");
+			printCurrentMode(*mode);
 			commandPacket.command = COMMAND_COLOR;
 			sendPacket(&commandPacket);
 			break;
 			
 		case DISTANCE:
 			printf("GET DISTANCE\n");
+			printCurrentMode(*mode);
 			commandPacket.command = COMMAND_DIST;
 			sendPacket(&commandPacket);
 			break;
@@ -362,6 +387,8 @@ int main() {
 	sendPacket(&helloPacket);
 	
 	int manual = false;
+	int currentMode = COMMAND_NORMAL_MODE;
+	
 	printf("\nWASD for movement, f=stop, e=get stats, r=clear stats, q=exit\n");
 	while(!exitFlag) {
 		char ch;
@@ -375,7 +402,7 @@ int main() {
 		manual = ch == MANUAL ? !manual : manual; // Only toggle when 'm' clicked
 		if (!send_status) {
 			send_status = true;
-			sendCommand(ch, manual);
+			sendCommand(ch, manual, &currentMode);
 		}
 	}
 

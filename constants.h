@@ -18,9 +18,9 @@ const char QUIT = 'q';
 const char MANUAL = 'm';
 const char COLOR = 'c';
 const char DISTANCE = 'v';
-const char SPEED_ONE = '1';
-const char SPEED_TWO = '2';
-const char SPEED_THREE = '3';
+const char PARK_MODE = '1';
+const char NORMAL_MODE = '2';
+const char HUMP_MODE = '3';
 
 // Packet types
 typedef enum
@@ -58,9 +58,9 @@ typedef enum
   COMMAND_STOP = 4,
   COMMAND_GET_STATS = 5,
   COMMAND_CLEAR_STATS = 6,
-  COMMAND_SPEED_SLOW = 7,
-  COMMAND_SPEED_MID = 8,
-  COMMAND_SPEED_FAST = 9,
+  COMMAND_PARK_MODE = 7,
+  COMMAND_NORMAL_MODE = 8,
+  COMMAND_HUMP_MODE = 9,
   COMMAND_MANUAL = 10,
   COMMAND_COLOR = 11,
   COMMAND_DIST = 12
