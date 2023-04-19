@@ -1,0 +1,7 @@
+1. Implement something cool
+a. Idea 1 : draw the path taken on rviz
+b. Idea 2 : implement a compass, using figurine as the needle and servo motor to log turn data
+2. Do report
+3. Improve (your) move commands
+4. Learn how to implement TLS
+5. learn ROS networking to help distribute the load (split nodes between 2 PCs)

@@ -85,7 +85,7 @@ void sendBadToken(TTokenType tokenErrMsg) {
 }
 void sendTokenData(float speed, float dist, long ang, char dir)
 {
-	sendMessage("Parameters received by Arduino: %f %f %ld %c \n",speed,dist,ang,dir);
+	sendMessage("Arduino: %f %f %ld %c \n",speed,dist,ang,dir);
 }
 
 

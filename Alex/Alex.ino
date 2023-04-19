@@ -88,46 +88,13 @@ TTokenType checkSpeedToken(char *userStr)
 	if (strtol(userStr, &junkStr, 10) < 0 || strtol(userStr, &junkStr, 10) > 100)
 	{
 		sendBadToken(SPEED_TOKEN_BAD);
-		sendMessage("Speed received by Arduino is: %f\n",strtof(userStr, &junkStr));
 		return SPEED_TOKEN_BAD;
 	}
 	else {
 		return TOKEN_GOOD;
 	}
 }
-void processTokens(char *userStr)
-{
-	int badTokens = 0;
-	for (int i = 0; i < 4; i++)
-	{
-		if (tokenStatuses[i])
-		{
-			badTokens++;
-		}
-	}
-	if (badTokens)
-	{
-		sendBadToken(tokenStatuses[0]);
-		sendBadToken(tokenStatuses[1]);
-		sendBadToken(tokenStatuses[2]);
-		sendBadToken(tokenStatuses[3]);
-		sendTokenData(speed,dist,ang,dir);
-	}
-	else
-	{
-		char *junkStr;
-		const char delim[2] = " ";
-		char *curToken = strtok(userStr, delim);
-		speed = strtof(curToken, &junkStr);
-		curToken = strtok(NULL, delim);
-		dist = strtof(curToken, &junkStr);
-		curToken = strtok(NULL, delim);
-		ang = strtol(curToken, &junkStr, 10);
-		curToken = strtok(NULL, delim);
-		dir = *curToken;
-		sendTokenData(speed,dist,ang,dir);
-	}
-}
+
 void checkTokens(char *userStr)
 {
 	char *junkStr;
@@ -171,6 +138,39 @@ void checkTokens(char *userStr)
 	{
 		tokenStatuses[3] = DIR_TOKEN_BAD;
 	}
+}
+
+void processTokens(char *userStr)
+{
+	int badTokens = 0;
+	for (int i = 0; i < 4; i++)
+	{
+		if (tokenStatuses[i])
+		{
+			badTokens++;
+		}
+	}
+	if (badTokens)
+	{
+		sendBadToken(tokenStatuses[0]);
+		sendBadToken(tokenStatuses[1]);
+		sendBadToken(tokenStatuses[2]);
+		sendBadToken(tokenStatuses[3]);
+	}
+	else
+	{
+		char *junkStr;
+		const char delim[2] = " ";
+		char *curToken = strtok(userStr, delim);
+		speed = strtof(curToken, &junkStr);
+		curToken = strtok(NULL, delim);
+		dist = strtof(curToken, &junkStr);
+		curToken = strtok(NULL, delim);
+		ang = strtol(curToken, &junkStr, 10);
+		curToken = strtok(NULL, delim);
+		dir = *curToken;
+	}
+	sendTokenData(speed,dist,ang,dir);
 }
 
 void handlePacket(TPacket *packet) {
@@ -239,6 +239,7 @@ void handleCommand(TPacket *command) {
 				break;
 			}
 			speed = strtof(command->data, &junkChar);
+			sendMessage("Arduino speed is: %f\n", speed);
 			break;
 		case COMMAND_MANUAL:
 			sendOK();
