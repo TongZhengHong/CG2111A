@@ -91,7 +91,7 @@ void handleColor(TPacket *packet) {
 	
 	// Determine color
 	const int COLOR_THRESHOLD = 10;
-	const int RED_THRESHOLD = 1100;
+	const int RED_THRESHOLD = 1000;
 	const int GREEN_THRESHOLD = 25;
 	const int DIST_THRESHOLD = 10;
 	
