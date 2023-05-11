@@ -16,6 +16,16 @@ Alex is a search and rescue robot designed to aid rescue efforts in the wake of 
 
 </div>
 
+### Basic Hardware (Given)
+
+1. DRV8833 Dual H-Bridge motor driver
+2. Wheel encoders & Motors
+3. HC-SR04 Ultrasonic Sensor
+4. A14-54-B-06 Color Sensor
+5. Arduino Uno
+6. Raspberry Pi 4
+7. RPLidar
+
 ### Additional Features
 
 - [x] Aluminum heatsink casing with dual fan
@@ -30,7 +40,8 @@ The following are the overall hardware connections of Alex:
 - The Raspberry Pi is powered by the external power bank
 - RPLidar is powered by and communicates with the RPi via USB connection
 - Arduino Uno is powered by and communicates with RPi via USB connection (USB B port)
-- Alex's motors are powered by 4xAA batteries (with DRV8883 H-bridge)
+- Alex's motors are powered by 4xAA batteries (with DRV8833 H-bridge)
+- Connect the ultrasonic sensor and color sensor to the Arduino
 
 Upload the Arduino program called `Alex.ino` in `Alex` folder to the Arduino Uno. Other files`.ino` are tabs to the main file and should be compiled together. Ensure that they are recognised as tabs for the program to compile correctly.
 
@@ -56,7 +67,7 @@ roslaunch rplidar_ros view_slam.launch
 
 The idle temperature of the RPi hovers around 50°C. The temperature would easily reach 70~80°C when we were running RViz, Hector SLAM and `Alex-pi` program simultaneously to operate Alex. At that temperature range, the RPi became less responsive, and it made it difficult to send commands to Alex and navigate it through the room. 
 
-With the casing mounted, the **maximum** temperature of the RPi is **45°C** when running all the necessary programs for operation, which is much lower than the original idle temperature without the casing. However, one drawback of this approach was the additional weight of the aluminum casing, which will be discussed in limitations. 
+With the casing mounted, the **maximum** temperature of the RPi is **45°C** when running all the necessary programs for operation, which is much lower than the original idle temperature without the casing. However, one drawback of this approach was the additional weight of the aluminum casing, which will be discussed in [limitations](#limitations). 
 
 <div align="center">
 
@@ -236,3 +247,8 @@ One observation when tuning the color sensor was that the reflected light values
 
 ## Limitations
 
+The addition of the aluminum RPi casing and Walkie Talkie resulted in a considerable increase in the weight of Alex which inadvertently affected its performance. As a result, our motors had to operate at near 100% speed for optimal performance. During the runs, we experienced limited mobility towards the end of 8 minutes as the batteries were limited on charge capacity to support the added weight of our Alex. 
+
+We could have solved this by using 1.5V Alkaline batteries that have higher voltage compared to the 1.33V NiMH Eneloop batteries. With this approach, more power can be supplied to the motors to operate our Alex which was heavier than normal over a longer period. 
+
+To future groups considering to add additional hardware to their Alex, please run Alex through the course for the full duration to ensure that weight/power is not an issue!
