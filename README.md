@@ -2,7 +2,11 @@
 
 ## Year 1 Semester 2 finale robot project for CG2111A module using RPLidar and Raspberry Pi.
 
-Alex is a search and rescue robot designed to aid rescue efforts in the wake of natural disasters. Remotely controlled by an external operator, it can navigate through unfamiliar disaster terrains to detect presence of human life. In order to achieve this, a RPLidar sensor is mounted on Alex's top deck to map out its surroundings. The map will be relayed back to the operator who can reference it to remotely traverse Alex through the disaster terrain. Alex also has in-built voice communications via walkie-talkie to communicate with on-site emergency rescuers, further enhancing its search and rescue capabilities.
+Alex is a search and rescue robot designed to aid rescue efforts in the wake of natural disasters. Remotely controlled by an external operator, it can navigate through unfamiliar disaster terrains to detect presence of human life. 
+
+In order to achieve this, a RPLidar sensor is mounted on Alex's top deck to map out its surroundings. The map will be relayed back to the operator who can reference it to remotely traverse Alex through the disaster terrain. Alex also has in-built voice communications via walkie-talkie to communicate with on-site emergency rescuers, further enhancing its search and rescue capabilities.
+
+For more information, please view our report [here](/report.pdf).
 
 <div align="center">
 
@@ -16,23 +20,9 @@ Alex is a search and rescue robot designed to aid rescue efforts in the wake of 
 
 </div>
 
-### Basic Hardware (Given)
-
-1. DRV8833 Dual H-Bridge motor driver
-2. Wheel encoders & Motors
-3. HC-SR04 Ultrasonic Sensor
-4. A14-54-B-06 Color Sensor
-5. Arduino Uno
-6. Raspberry Pi 4
-7. RPLidar
-
-### Additional Features
-
-- [x] Aluminum heatsink casing with dual fan
-- [x] Eyein UPRO-CHD32-2C Walkie Talkie
-- [x] Improved control mapping and efficiency
-- [x] Immediate command recognisation
-- [x] Using Transform Frame (TF) to model Alex in RViz
+| Basic Hardware (Given) | Additional Features |
+| ----------- | ----------- |
+| 1. DRV8833 Dual H-Bridge motor driver <br> 2. Wheel encoders & Motors <br> 3. HC-SR04 Ultrasonic Sensor  <br> 4. A14-54-B-06 Color Sensor <br> 5. Arduino Uno <br> 6. Raspberry Pi 4 <br> 7. RPLidar | - [x] Aluminum heatsink casing with dual fan <br> - [x] Eyein UPRO-CHD32-2C Walkie Talkie <br> - [x] Improved control mapping and efficiency <br> - [x] Immediate command recognisation <br> - [x] Using Transform Frame (TF) to model Alex in RViz |
 
 ## Setting up Alex
 
@@ -43,7 +33,80 @@ The following are the overall hardware connections of Alex:
 - Alex's motors are powered by 4xAA batteries (with DRV8833 H-bridge)
 - Connect the ultrasonic sensor and color sensor to the Arduino
 
-Upload the Arduino program called `Alex.ino` in `Alex` folder to the Arduino Uno. Other files`.ino` are tabs to the main file and should be compiled together. Ensure that they are recognised as tabs for the program to compile correctly.
+<div align="center">
+
+<img src="images/cg2111a_circuit_bb.png">
+
+*Alex schematic diagram*
+
+</div>
+
+DRV8833 Dual H-bridge connections: 
+<table>
+<tr>
+  <th></th>
+  <th></th>
+</tr>
+<tr><td>
+
+| DRV8833 pin | Connection |
+| ----------- | ----------- |
+| VIN | +ve of battery pack |
+| GND | -ve of battery pack |
+| BOUT1 | **Red** wire of RIGHT motor |
+| BOUT2 | **Black** wire of RIGHT motor |
+| AOUT1 | **Red** wire of LEFT motor |
+| AOUT2 | **Black** wire of LEFT motor |
+
+</td><td>
+
+| DRV8833 pin | Connection |
+| ----------- | ----------- |
+| VMM | Do NOT connect |
+| BIN1 | Arduino pin 10 |
+| BIN2 | Arduino pin 11 |
+| AIN1 | Arduino pin 5 |
+| AIN2 | Arduino pin 6 |
+
+</td></tr> </table>
+
+<table>
+<tr>
+  <th style="text-align:center"> Color sensor </th>
+  <th style="text-align:center"> Ultrasonic sensor </th>
+  <th style="text-align:center"> Wheel encoders </th>
+</tr>
+<tr><td>
+
+| TCS3200 pin | Connection |
+| ----------- | ----------- |
+| OUT | Arduino pin 4 |
+| S0 | Arduino pin 9 |
+| S1 | Arduino pin 8 |
+| S2 | Arduino pin 12 |
+| S3 | Arduino pin 13 |
+
+</td><td>
+
+| HC-SR04 pin | Connection |
+| ----------- | ----------- |
+| VCC | Arduino +5V |
+| GND | Arduino GND |
+| TRIG | Arduino pin A5 |
+| ECHO | Arduino pin A4 |
+
+</td><td>
+
+| Hall effect sensor | Connection |
+| ----------- | ----------- |
+| VCC | Arduino +5V |
+| GND | Arduino GND |
+| Left encoder | Arduino pin 2 |
+| Right encoder | Arduino pin 3 |
+
+</td></tr> </table>
+
+Once the hardware connections have been verified, upload the Arduino program called `Alex.ino` in `Alex` folder to the Arduino Uno. Other files`.ino` are tabs to the main file and should be compiled together. Ensure that they are recognised as tabs for the program to compile correctly.
 
 Next, compile the `alex-pi.cpp` program to control Alex:
 ```bash
@@ -63,37 +126,10 @@ roslaunch rplidar_ros view_slam.launch
 
 ## Hardware Features
 
-### Aluminum heatsink casing with dual fan
-
-The idle temperature of the RPi hovers around 50°C. The temperature would easily reach 70~80°C when we were running RViz, Hector SLAM and `Alex-pi` program simultaneously to operate Alex. At that temperature range, the RPi became less responsive, and it made it difficult to send commands to Alex and navigate it through the room. 
-
-With the casing mounted, the **maximum** temperature of the RPi is **45°C** when running all the necessary programs for operation, which is much lower than the original idle temperature without the casing. However, one drawback of this approach was the additional weight of the aluminum casing, which will be discussed in [limitations](#limitations). 
-
-<div align="center">
-
-<img src="images/casing.png" width="400">
-
-*Aluminum heatsink casing with dual fan*
-
-</div>
-
-Tip: If you want a quick alternative to offloading Hector SLAM onto another ROS device, use this but beware of the additional weight it adds to Alex!
-
-### Eyein UPRO-CHD32-2C Walkie Talkie
-
-We chose our additional functionality to be a microphone and speaker system via the use of two Walkie Talkies, one attached to the Alex and one for the operator. In the real-world context, when Alex detects a victim, the survivor can use the on-built microphone to communicate with emergency personnel. 
-
-This system aids in transmission of instructions or knowledge of environmental conditions, where both parties can hear and speak clearly to one another remotely using the Walkie Talkie. This thus assists on-site rescuers to locate the trapped victims using details provided by the victim, on top of the navigation map. 
-
-<div align="center">
-
-<img src="images/walkie_talkie.jpg" width="400">
-
-*Eyein UPRO-CHD32-2C Walkie Talkie*
-
-</div>
-
-The Walkie Talkie is mounted to the back of Alex using Velcro cable ties and operates using 4 integrated AAA batteries.
+| Item      | Description | Image | 
+| ----------- | ----------- | ----------- |
+| **Aluminum heatsink casing with dual fan** | The idle temperature of the RPi hovers around 50°C. The temperature would easily reach 70~80°C when we were running RViz, Hector SLAM and `Alex-pi` program simultaneously to operate Alex. At that temperature range, the RPi became less responsive, and it made it difficult to send commands to Alex and navigate it through the room. <br><br> With the casing mounted, the **maximum** temperature of the RPi is **45°C** when running all the necessary programs for operation, which is much lower than the original idle temperature without the casing. However, one drawback of this approach was the additional weight of the aluminum casing, which will be discussed in [limitations](#limitations). <br><br> Tip: If you want a quick alternative to offloading Hector SLAM onto another ROS device, use this but beware of the additional weight it adds to Alex!| ![](images/casing.png) |
+| **Eyein UPRO-CHD32-2C Walkie Talkie**   | We chose our additional functionality to be a microphone and speaker system via the use of two Walkie Talkies, one attached to the Alex and one for the operator. In the real-world context, when Alex detects a victim, the survivor can use the on-built microphone to communicate with emergency personnel. <br><br>  This system aids in transmission of instructions or knowledge of environmental conditions, where both parties can hear and speak clearly to one another remotely using the Walkie Talkie. This thus assists on-site rescuers to locate the trapped victims using details provided by the victim, on top of the navigation map. <br><br> The Walkie Talkie is mounted to the back of Alex using Velcro cable ties and operates using 4 integrated AAA batteries.| ![](images/walkie_talkie.jpg)  |
 
 ## Software Features
 
