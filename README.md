@@ -27,7 +27,7 @@ For more information, please view our report [here](/report.pdf).
 ## Setting up Alex
 
 The following are the overall hardware connections of Alex:
-- The Raspberry Pi is powered by the external power bank
+- Raspberry Pi is powered by the external power bank
 - RPLidar is powered by and communicates with the RPi via USB connection
 - Arduino Uno is powered by and communicates with RPi via USB connection (USB B port)
 - Alex's motors are powered by 4xAA batteries (via DRV8833 H-bridge)
@@ -98,7 +98,7 @@ Connections for other sensors:
 
 </td><td>
 
-| Hall effect sensor | Connection |
+| Hall effect pin | Connection |
 | ----------- | ----------- |
 | VCC | Arduino +5V |
 | GND | Arduino GND |
@@ -203,11 +203,11 @@ This meant that the operater can send commands at a much faster rate which could
 static bool send_status = false;
 
 void handleResponse(TPacket *packet) {
-	switch(packet->command) {
-		case RESP_OK:
-			printf("Command OK\n");
-			send_status = false;
-			break;
+    switch(packet->command) {
+        case RESP_OK:
+            printf("Command OK\n");
+            send_status = false;
+            break;
         ...
     }
 }
