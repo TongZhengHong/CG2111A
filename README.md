@@ -22,7 +22,7 @@ For more information, please view our report [here](/report.pdf).
 
 | Basic Hardware (Given) | Additional Features |
 | ----------- | ----------- |
-| 1. DRV8833 Dual H-Bridge motor driver <br> 2. Wheel encoders & Motors <br> 3. HC-SR04 Ultrasonic Sensor  <br> 4. A14-54-B-06 Color Sensor <br> 5. Arduino Uno <br> 6. Raspberry Pi 4 <br> 7. RPLidar | - [x] Aluminum heatsink casing with dual fan <br> - [x] Eyein UPRO-CHD32-2C Walkie Talkie <br> - [x] Improved control mapping and efficiency <br> - [x] Immediate command recognisation <br> - [x] Using Transform Frame (TF) to model Alex in RViz |
+| 1. DRV8833 Dual H-Bridge motor driver <br> 2. Wheel encoders & Motors <br> 3. HC-SR04 Ultrasonic Sensor  <br> 4. A14-54-B-06 Color Sensor <br> 5. Arduino Uno <br> 6. Raspberry Pi 4 <br> 7. RPLidar | :white_check_mark: Aluminum heatsink casing with dual fan <br> :white_check_mark: Eyein UPRO-CHD32-2C Walkie Talkie <br> :white_check_mark: Improved control mapping and efficiency <br> :white_check_mark: Immediate command recognisation <br> :white_check_mark: Using Transform Frame (TF) to model Alex in RViz |
 
 ## Setting up Alex
 
@@ -30,8 +30,8 @@ The following are the overall hardware connections of Alex:
 - The Raspberry Pi is powered by the external power bank
 - RPLidar is powered by and communicates with the RPi via USB connection
 - Arduino Uno is powered by and communicates with RPi via USB connection (USB B port)
-- Alex's motors are powered by 4xAA batteries (with DRV8833 H-bridge)
-- Connect the ultrasonic sensor and color sensor to the Arduino
+- Alex's motors are powered by 4xAA batteries (via DRV8833 H-bridge)
+- Connect the color sensor, ultrasonic sensor and wheel encoders to the Arduino Uno
 
 <div align="center">
 
@@ -70,6 +70,7 @@ DRV8833 Dual H-bridge connections:
 
 </td></tr> </table>
 
+Connections for other sensors:
 <table>
 <tr>
   <th style="text-align:center"> Color sensor </th>
