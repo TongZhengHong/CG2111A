@@ -156,13 +156,13 @@ The given template code uses controls: f (forward), b (reverse), l (left) and r 
 | Command     | Key         | Description |
 | ----------- | ----------- | ----------- |
 | Get Color Data | **C** | Retrieve raw reflected R,G,B light values from color sensor and ultransonic distance to determine color of object in front based on [color detection algorithm](#color-detection-implementation) |
-| Get Ultrasonic Data | **V** | Determine distance to objects in front of Alex in cm |
+| Get Ultrasonic Data | **V** | Determine distance to objects in front of Alex in centimeters |
 | Get Odometry Data | **E** | Retrieve number of turns made by each wheel and distance travelled by each wheel, and stored them as global variables |
 | Clear Data | **R** | All global variables storing odometry data will be reset to 0 |
 | End Serial Comms | **Q** | RPi will stop reading inputs from the keyboard and end serial communications with Arduino |
 | Toggle Mode | **M** | Toggle between auto and manual modes |
 
-After every movement command, the current Auto mode (**Park**, **Normal** and **Hump**) and the **ultrasonic distance** will be sent back to RPi. These information will be shown to the operator for better situational awareness while navigating Alex. 
+After every movement command, the current Auto mode (**Park**, **Normal** and **Hump**) and the **ultrasonic distance** will be sent back to RPi. These information will be shown to the operator to enhance situational awareness while navigating Alex. 
 
 ### Immediate command recognisation
 
@@ -176,49 +176,49 @@ char getch() {
 	char buf = 0;
 	struct termios old = {0};
 	if (tcgetattr(0, &old) < 0)
-			perror("tcsetattr()");
+		perror("tcsetattr()");
 	old.c_lflag &= ~ICANON;
 	old.c_lflag &= ~ECHO;
 	old.c_cc[VMIN] = 1;
 	old.c_cc[VTIME] = 0;
 	if (tcsetattr(0, TCSANOW, &old) < 0)
-			perror("tcsetattr ICANON");
+		perror("tcsetattr ICANON");
 	if (read(0, &buf, 1) < 0)
-			perror ("read()");
+		perror ("read()");
 	old.c_lflag |= ICANON;
 	old.c_lflag |= ECHO;
 	if (tcsetattr(0, TCSADRAIN, &old) < 0)
-			perror ("tcsetattr ~ICANON");
+		perror ("tcsetattr ~ICANON");
 	return (buf);
 }
 ```
 
-This meant that the operater can send commands at a much faster rate which could unfortunately lead to **bad magic number** or **bad checksum** error if commands was sent while one is already in transmission. To address the issue, we need to ensure that a command has been received by the Arduino before the next command can be sent. This is achieved with the following steps:
+This allows the operator to send commands at a much faster rate which could unfortunately lead to **bad magic number** or **bad checksum** error if commands were sent while one is already in transmission. To address the issue, we need to ensure that a command has been received by the Arduino before the next command can be sent. This is achieved with the following steps:
 
 - Maintain a global **`send_status`** flag that will be set to `true` when a command is sent. 
-- While the flag is `true`, the RPi ignores any incoming commands from the operator as the previous command is still being sent to the Arduino.
+- While the flag is `true`, the RPi ignores any incoming commands from the operator as the previous command is still being transmitted to the Arduino.
 - Set the flag to `false` when the RPi receives an OK packet, indicating that the Arduino has received the command successfully. 
 
 ```cpp
 static bool send_status = false;
 
 void handleResponse(TPacket *packet) {
-    switch(packet->command) {
-        case RESP_OK:
-            printf("Command OK\n");
-            send_status = false;
-            break;
-        ...
-    }
+	switch(packet->command) {
+	case RESP_OK:
+		printf("Command OK\n");
+			send_status = false;
+			break;
+		...
+	}
 }
    
 int main() {
-    ...
-    if (!send_status) {
-        send_status = true;
-        sendCommand(ch, manual, &currentMode);
-    }
-    ...
+	...
+	if (!send_status) {
+		send_status = true;
+		sendCommand(ch, manual, &currentMode);
+	}
+	...
 }
 ```
 
@@ -226,13 +226,13 @@ int main() {
 
 We were shown to display the pose of the lidar as an arrow on the map in RViz. However, this arrow is quite inaccurate at displaying the position of Alex on the generated map. 
 
-Hence, we implemented additional markers that are positioned offset relative to the lidar’s position using **Transform Frame** (TF). Each marker by default is modeled with 3 axis which can be rotated to form the corners of Alex. We used 5 markers to outline the boundaries of Alex on the RViz map. (4 for each corner and 1 to return to the first marker)
+Hence, we implemented additional markers that are positioned offset relative to the lidar’s position using **Transform Frame** (TF). Each marker by default is modeled with 3 axis which can be rotated to represent the corners of Alex. We used 5 markers to outline the boundaries of Alex on the RViz map. (4 for each corner and the last to return to the first marker)
 
 <div align="center">
 
 <img src="images/rvis.jpg" width="600">
 
-*Aluminum heatsink casing with dual fan*
+*Lidar scan with TF markers representing Alex*
 
 </div>
 
